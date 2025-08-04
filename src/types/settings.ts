@@ -1,0 +1,6 @@
+export interface Settings {
+  apiUrl: string;
+  username: string;
+  password: string;
+  serverUrl?: string; // Optional: The base URL of the TT-RSS instance, e.g., https://your.ttrss.host
+}

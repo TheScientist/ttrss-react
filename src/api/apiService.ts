@@ -1,0 +1,124 @@
+import axios, { type AxiosInstance } from 'axios';
+import type { Settings } from '../types/settings';
+import type {
+  ApiRequest,
+  ApiResponse,
+  LoginResponse,
+  ApiCategory,
+  ApiFeed,
+  ApiArticle,
+} from './types';
+
+class ApiService {
+  private static instance: ApiService;
+  private apiClient: AxiosInstance | null = null;
+  private sid: string | null = null;
+
+  private constructor() {}
+
+  public static getInstance(): ApiService {
+    if (!ApiService.instance) {
+      ApiService.instance = new ApiService();
+    }
+    return ApiService.instance;
+  }
+
+  public async login(settings: Settings): Promise<boolean> {
+    this.apiClient = axios.create({ baseURL: settings.apiUrl });
+    try {
+      const response = await this.request<LoginResponse>({
+        op: 'login',
+        user: settings.username,
+        password: settings.password,
+      });
+      this.sid = response.content.session_id;
+      return true;
+    } catch (error) {
+      console.error('Login failed:', error);
+      this.sid = null;
+      return false;
+    }
+  }
+
+  public isLoggedIn(): boolean {
+    return !!this.sid;
+  }
+
+  private async request<T>(data: ApiRequest): Promise<ApiResponse<T>> {
+    if (!this.apiClient) {
+      throw new Error('API client not initialized. Please login first.');
+    }
+
+    const requestData = { ...data };
+    if (this.sid && data.op !== 'login') {
+      requestData.sid = this.sid;
+    }
+
+    const response = await this.apiClient.post<ApiResponse<T>>('', requestData);
+    if (response.data.status !== 0) {
+      throw new Error(`API Error: ${response.data.content}`);
+    }
+    return response.data;
+  }
+
+  public async getCategories(): Promise<ApiCategory[]> {
+    const response = await this.request<ApiCategory[]>({
+      op: 'getCategories',
+      unread_only: false,
+    });
+    return response.content;
+  }
+
+  public async getFeeds(categoryId: number): Promise<ApiFeed[]> {
+    const response = await this.request<ApiFeed[]>({
+      op: 'getFeeds',
+      cat_id: categoryId,
+    });
+    return response.content;
+  }
+
+  public async getHeadlines(
+    feedId: number,
+    isCategory: boolean = false
+  ): Promise<ApiArticle[]> {
+    const response = await this.request<ApiArticle[]>({
+      op: 'getHeadlines',
+      feed_id: feedId,
+      is_cat: isCategory,
+      view_mode: 'all_articles',
+      show_content: false,
+    });
+    return response.content.map((article) => ({
+      ...article,
+      updated: parseInt(article.updated as any, 10),
+    }));
+  }
+
+  public async getArticle(articleId: number): Promise<ApiArticle> {
+    const response = await this.request<ApiArticle[]>({
+      op: 'getArticle',
+      article_id: articleId,
+    });
+    // The API returns an array with a single article
+    const article = response.content[0];
+    return {
+      ...article,
+      updated: parseInt(article.updated as any, 10),
+    };
+  }
+
+  public async markArticleAsRead(articleId: number): Promise<void> {
+    await this.request({
+      op: 'updateArticle',
+      article_ids: `${articleId}`,
+      mode: 0, // set to false
+      field: 2, // unread
+    });
+  }
+
+  public getFeedIconUrl(feedId: number): string {
+    return `/public.php?op=feed_icon&id=${feedId}`;
+  }
+}
+
+export default ApiService.getInstance();
