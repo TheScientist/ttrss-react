@@ -26,22 +26,20 @@ const FeedTree: React.FC = () => {
   };
 
   const handleItemClick = (event: React.SyntheticEvent, nodeId: string) => {
-    // Prevent the click from propagating to the parent if it's an expand/collapse click
-    if ((event.target as HTMLElement).closest('.MuiTreeItem-iconContainer')) {
-      return;
-    }
-    
-    const [type, idString] = nodeId.split('_');
-    if (type && idString) {
-      const id = parseInt(idString, 10);
-      const isCategory = type === 'cat';
-      
-      // Special handling for special feeds (negative IDs)
-      if (id < 0) {
-        // For special feeds, we always set isCategory to false
-        setSelection({ id, isCategory: false });
-      } else {
-        setSelection({ id, isCategory });
+    // Only process the click if it's not on the expand/collapse icon
+    if (!(event.target as HTMLElement).closest('.MuiTreeItem-iconContainer')) {
+      const [type, idString] = nodeId.split('_');
+      if (type && idString) {
+        const id = parseInt(idString, 10);
+        const isCategory = type === 'cat';
+        
+        // Special handling for special feeds (negative IDs)
+        if (id < 0) {
+          // For special feeds, we always set isCategory to false
+          setSelection({ id, isCategory: false });
+        } else {
+          setSelection({ id, isCategory });
+        }
       }
     }
   };
@@ -63,44 +61,48 @@ const FeedTree: React.FC = () => {
   }
 
   return (
-    <SimpleTreeView
-      apiRef={apiRef}
-      aria-label="feed-navigator"
-      selectedItems={selection ? `${selection.isCategory ? 'cat' : 'feed'}_${selection.id}` : null}
-      expandedItems={expanded}
-      onExpandedItemsChange={handleToggle}
-      onItemClick={handleItemClick}
-      slots={{ 
-        collapseIcon: ExpandMoreIcon, 
-        expandIcon: ChevronRightIcon,
-        // Add pointer-events: none to the label to ensure clicks go to the parent
-        item: (props) => (
-          <TreeItem
-            {...props}
-            sx={{
-              '& .MuiTreeItem-label': {
-                pointerEvents: 'none'
-              },
-              '& .MuiTreeItem-iconContainer': {
-                pointerEvents: 'auto'
-              }
-            }}
-          />
-        )
-      }}
-      sx={{ 
-        flexGrow: 1, 
-        maxWidth: 400, 
-        overflowY: 'auto',
-        // Ensure the entire item is clickable for selection
-        '& .MuiTreeItem-content': {
-          cursor: 'pointer',
+    <Box sx={{
+      flexGrow: 1, 
+      maxWidth: 400, 
+      overflowY: 'auto',
+      '& .MuiTreeItem-content': {
+        cursor: 'pointer',
+        '&:hover': {
+          backgroundColor: 'action.hover'
+        },
+        // Make the entire content area non-clickable
+        '&.MuiTreeItem-content': {
+          pointerEvents: 'none'
+        },
+        // But make the icon container clickable
+        '& .MuiTreeItem-iconContainer': {
+          pointerEvents: 'auto',
           '&:hover': {
-            backgroundColor: 'action.hover'
+            backgroundColor: 'transparent'
           }
+        },
+        // Make the label clickable for selection
+        '& .MuiTreeItem-label': {
+          pointerEvents: 'auto',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          msUserSelect: 'none',
+          MozUserSelect: 'none'
         }
-      }}
-    >
+      }
+    }}>
+      <SimpleTreeView
+        apiRef={apiRef}
+        aria-label="feed-navigator"
+        selectedItems={selection ? `${selection.isCategory ? 'cat' : 'feed'}_${selection.id}` : null}
+        expandedItems={expanded}
+        onExpandedItemsChange={handleToggle}
+        onItemClick={handleItemClick}
+        slots={{ 
+          collapseIcon: ExpandMoreIcon, 
+          expandIcon: ChevronRightIcon,
+        }}
+      >
       {treeData.map((category) => (
         <TreeItem key={`cat_${category.id}`} itemId={`cat_${category.id}`} label={`${category.title} (${category.unread})`}>
           {category.feeds.map((feed) => {
@@ -128,7 +130,8 @@ const FeedTree: React.FC = () => {
           })}
         </TreeItem>
       ))}
-    </SimpleTreeView>
+      </SimpleTreeView>
+    </Box>
   );
 
 };
