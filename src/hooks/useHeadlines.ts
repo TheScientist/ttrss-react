@@ -32,8 +32,6 @@ export const useHeadlines = () => {
           selection.id,
           selection.isCategory
         );
-        console.log('Fetched headlines:', fetchedHeadlines);
-        console.log('First article structure:', fetchedHeadlines[0] ? Object.keys(fetchedHeadlines[0]) : 'No articles');
         setHeadlines(fetchedHeadlines);
       } catch (e) {
         setError('Failed to fetch headlines.');
