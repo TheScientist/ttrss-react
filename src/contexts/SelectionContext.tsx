@@ -1,4 +1,4 @@
-import { createContext, useState, useContext, type ReactNode } from 'react';
+import { createContext, useState, useContext, type ReactNode, useCallback, useMemo } from 'react';
 
 export interface Selection {
   id: number;
@@ -18,16 +18,18 @@ export const SelectionProvider = ({ children }: { children: ReactNode }) => {
     const [selection, setSelection] = useState<Selection | null>(null);
   const [selectedArticleId, setSelectedArticleId] = useState<number | null>(null);
 
-    const value = {
+  const handleSetSelection = useCallback((newSelection: Selection | null) => {
+    setSelection(newSelection);
+    // Reset article selection when feed/category changes
+    setSelectedArticleId(null);
+  }, []);
+
+  const value = useMemo(() => ({
     selection,
-    setSelection: (newSelection: Selection | null) => {
-      setSelection(newSelection);
-      // Reset article selection when feed/category changes
-      setSelectedArticleId(null);
-    },
+    setSelection: handleSetSelection,
     selectedArticleId,
     setSelectedArticleId,
-  };
+  }), [selection, selectedArticleId, handleSetSelection]);
 
   return (
     <SelectionContext.Provider value={value}>

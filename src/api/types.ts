@@ -38,7 +38,7 @@ export interface ApiFeed {
   has_icon: boolean;
   cat_id: number;
   iconUrl?: string;
-  muiIcon?: string;
+  muiIcon?: string | null;
 }
 
 export interface ApiArticle {

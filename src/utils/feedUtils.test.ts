@@ -7,17 +7,25 @@ const mockTreeData: TreeCategory[] = [
     id: 1,
     title: 'Category 1',
     unread: 5,
+    labels: [],
+    note: null,
+    icon: '',
+    cat_id: 1,
     feeds: [
-      { id: 101, title: 'Feed 1.1', unread: 2, iconUrl: 'icon1.png', muiIcon: null, cat_id: 1, last_updated: 0, order_id: 0, has_icon: false, link: '', is_vfeed: false, last_error: '', last_read: 0, parent_feed: null, private: false, sid: '', site_url: '', subtitle: '', view_settings: '' },
-      { id: 102, title: 'Feed 1.2', unread: 3, iconUrl: 'icon2.png', muiIcon: null, cat_id: 1, last_updated: 0, order_id: 0, has_icon: false, link: '', is_vfeed: false, last_error: '', last_read: 0, parent_feed: null, private: false, sid: '', site_url: '', subtitle: '', view_settings: '' },
+      { id: 101, title: 'Feed 1.1', unread: 2, iconUrl: 'icon1.png', muiIcon: null, cat_id: 1, has_icon: false },
+      { id: 102, title: 'Feed 1.2', unread: 3, iconUrl: 'icon2.png', muiIcon: null, cat_id: 1, has_icon: false },
     ],
   },
   {
     id: 2,
     title: 'Category 2',
     unread: 0,
+    labels: [],
+    note: null,
+    icon: '',
+    cat_id: 2,
     feeds: [
-      { id: 201, title: 'Feed 2.1', unread: 0, iconUrl: 'icon3.png', muiIcon: null, cat_id: 2, last_updated: 0, order_id: 0, has_icon: false, link: '', is_vfeed: false, last_error: '', last_read: 0, parent_feed: null, private: false, sid: '', site_url: '', subtitle: '', view_settings: '' },
+      { id: 201, title: 'Feed 2.1', unread: 0, iconUrl: 'icon3.png', muiIcon: null, cat_id: 2, has_icon: false },
     ],
   },
 ];

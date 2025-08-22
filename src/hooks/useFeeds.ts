@@ -145,9 +145,9 @@ export const useFeeds = () => {
 
     try {
       const categories = await apiService.getCategories();
-      const feedPromises = categories.map(async (category) => {
+      const feedPromises = categories.map(async (category: ApiCategory) => {
         const feeds = await apiService.getFeeds(category.id);
-        const feedsWithIcons = feeds.map((feed) => ({
+        const feedsWithIcons = feeds.map((feed: ApiFeed) => ({
           ...feed,
           iconUrl: (feed.has_icon ? apiService.getFeedIconUrl(feed.id) : undefined) ?? undefined,
         }));
@@ -157,11 +157,11 @@ export const useFeeds = () => {
       let populatedTree = await Promise.all(feedPromises);
 
       // Sort "Special" category to the top and adjust its counter
-      const specialCategoryIndex = populatedTree.findIndex(c => c.id === -1);
+      const specialCategoryIndex = populatedTree.findIndex((c: TreeCategory) => c.id === -1);
       if (specialCategoryIndex > -1) {
         const specialCategory = populatedTree.splice(specialCategoryIndex, 1)[0];
 
-        const recentlyReadFeed = specialCategory.feeds.find(f => f.id === -3);
+        const recentlyReadFeed = specialCategory.feeds.find((f: ApiFeed) => f.id === -3);
         if (recentlyReadFeed) {
           specialCategory.unread = recentlyReadFeed.unread;
         }
@@ -175,10 +175,13 @@ export const useFeeds = () => {
           [-6]: 'history',            // Unread Articles
         };
 
-        specialCategory.feeds = specialCategory.feeds.map(feed => ({
-          ...feed,
-          muiIcon: specialFeedIcons[feed.id],
-        }));
+        specialCategory.feeds = specialCategory.feeds.map((feed: ApiFeed) => {
+          return {
+            ...feed,
+            iconUrl: feed.iconUrl,
+            muiIcon: specialFeedIcons[feed.id],
+          };
+        });
 
         populatedTree.unshift(specialCategory);
       }

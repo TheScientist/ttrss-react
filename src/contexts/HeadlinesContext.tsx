@@ -12,6 +12,7 @@ interface HeadlinesContextType {
   markArticleAsPublished: (articleId: number, published: boolean) => Promise<void>;
   markFeedAsRead: (feedId: number, isCategory: boolean) => Promise<void>;
   fetchArticleContent: (articleId: number) => Promise<void>;
+  setHeadlineUnreadStatus: (articleId: number, unread: boolean) => void;
 }
 
 const HeadlinesContext = createContext<HeadlinesContextType | undefined>(
@@ -19,9 +20,9 @@ const HeadlinesContext = createContext<HeadlinesContextType | undefined>(
 );
 
 export const HeadlinesProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { headlines, isLoading, error, markArticleAsRead, markFeedAsRead, markArticleAsStarred, fetchArticleContent, markArticleAsPublished } = useHeadlines();
+  const { headlines, isLoading, error, markArticleAsRead, markFeedAsRead, markArticleAsStarred, fetchArticleContent, markArticleAsPublished, setHeadlineUnreadStatus } = useHeadlines();
 
-  const value = { headlines, isLoading, error, markArticleAsRead, markFeedAsRead, markArticleAsStarred, fetchArticleContent, markArticleAsPublished };
+  const value = { headlines, isLoading, error, markArticleAsRead, markFeedAsRead, markArticleAsStarred, fetchArticleContent, markArticleAsPublished, setHeadlineUnreadStatus };
 
   return (
     <HeadlinesContext.Provider value={value}>

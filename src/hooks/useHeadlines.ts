@@ -27,6 +27,14 @@ export const useHeadlines = () => {
     );
   }, []);
 
+  const setHeadlineUnreadStatus = useCallback((articleId: number, unread: boolean) => {
+    setHeadlines(currentHeadlines =>
+      currentHeadlines.map(headline =>
+        headline.id === articleId ? { ...headline, unread } : headline
+      )
+    );
+  }, []);
+
   const markArticleAsRead = useCallback(async (articleId: number, feedId: number, isCurrentlyUnread: boolean) => {
     const apiAction = isCurrentlyUnread;
 
@@ -159,5 +167,5 @@ export const useHeadlines = () => {
     fetchHeadlines();
   }, [selection]);
 
-  return { headlines, isLoading, error, markArticleAsRead, markFeedAsRead, markArticleAsStarred, fetchArticleContent, markArticleAsPublished };
+  return { headlines, isLoading, error, markArticleAsRead, markFeedAsRead, markArticleAsStarred, fetchArticleContent, markArticleAsPublished, setHeadlineUnreadStatus };
 };
