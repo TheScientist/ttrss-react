@@ -25,6 +25,12 @@ export interface ApiCategory {
   cat_id: number;
 }
 
+export interface ApiCounterItem {
+  id: number | string; // Special feeds can have string IDs like 'vfeed--1'
+  counter: number;
+  kind: 'feed' | 'cat' | 'label';
+}
+
 export interface ApiFeed {
   id: number;
   title: string;

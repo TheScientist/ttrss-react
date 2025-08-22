@@ -8,6 +8,7 @@ const SettingsPage: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [darkMode, setDarkMode] = useState(false);
+  const [counterUpdateInterval, setCounterUpdateInterval] = useState(300);
 
   useEffect(() => {
     if (settings) {
@@ -15,12 +16,13 @@ const SettingsPage: React.FC = () => {
       setUsername(settings.username);
       setPassword(settings.password);
       setDarkMode(settings.darkMode || false);
+      setCounterUpdateInterval(settings.counterUpdateInterval ?? 300);
     }
   }, [settings]);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    setSettings({ apiUrl, username, password, darkMode });
+    setSettings({ apiUrl, username, password, darkMode, counterUpdateInterval });
   };
 
   return (
@@ -61,6 +63,17 @@ const SettingsPage: React.FC = () => {
           <FormControlLabel
             control={<Switch checked={darkMode} onChange={(e) => setDarkMode(e.target.checked)} />}
             label="Dark Mode"
+          />
+          <TextField
+            label="Counter Update Interval (seconds)"
+            type="number"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            value={counterUpdateInterval}
+            onChange={(e) => setCounterUpdateInterval(Number(e.target.value))}
+            InputProps={{ inputProps: { min: 0 } }}
+            helperText="How often to refresh unread counts. Set to 0 to disable."
           />
           <Button type="submit" variant="contained" color="primary" sx={{ mt: 2 }}>
             Save Settings

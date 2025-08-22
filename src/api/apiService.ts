@@ -7,6 +7,7 @@ import type {
   ApiCategory,
   ApiFeed,
   ApiArticle,
+  ApiCounterItem,
 } from './types';
 
 class ApiService {
@@ -69,6 +70,13 @@ class ApiService {
     return response.content;
   }
 
+  public async getCounters(): Promise<ApiCounterItem[]> {
+    const response = await this.request<ApiCounterItem[]>({
+      op: 'getCounters',
+    });
+    return response.content;
+  }
+
   public async getFeeds(categoryId: number): Promise<ApiFeed[]> {
     const response = await this.request<ApiFeed[]>({
       op: 'getFeeds',
@@ -121,6 +129,18 @@ class ApiService {
 
   public async markArticleAsStarred(articleId: number, starred: boolean): Promise<void> {
     await this.updateArticle(articleId, 0, starred ? 1 : 0); // field=0 (starred), mode=1 (true) or 0 (false)
+  }
+
+  public async markArticleAsPublished(articleId: number, published: boolean): Promise<void> {
+    await this.updateArticle(articleId, 1, published ? 1 : 0); // field=1 (published), mode=1 (true) or 0 (false)
+  }
+
+  public async catchupFeed(feedId: number, isCategory: boolean = false): Promise<void> {
+    await this.request({
+      op: 'catchupFeed',
+      feed_id: feedId,
+      is_cat: isCategory,
+    });
   }
 
   public getFeedIconUrl(feedId: number): string {

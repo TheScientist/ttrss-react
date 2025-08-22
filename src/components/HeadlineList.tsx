@@ -7,8 +7,9 @@ import {
   List, ListItem, ListItemButton, ListItemText, CircularProgress, Typography, Box, 
   Collapse, Avatar, Toolbar, IconButton
 } from '@mui/material';
-import { Mail, MailOutline, Star, StarOutline } from '@mui/icons-material';
+import { Mail, MailOutline, Star, StarOutline, Share, Public } from '@mui/icons-material';
 import ArticleRenderer from './ArticleRenderer';
+import SwipeableListItem from './SwipeableListItem';
 import type { ApiArticle } from '../api/types';
 import { findFeedInfoInTree } from '../utils/feedUtils';
 
@@ -19,7 +20,7 @@ const formatTimestamp = (timestamp: number): string => {
 
 const HeadlineList: React.FC = () => {
   const articleRefs = useRef<Map<number, HTMLLIElement>>(new Map());
-  const { headlines, isLoading, error, markArticleAsRead, markArticleAsStarred, fetchArticleContent } = useHeadlinesContext();
+  const { headlines, isLoading, error, markArticleAsRead, markArticleAsStarred, fetchArticleContent, markArticleAsPublished } = useHeadlinesContext();
   const { selectedArticleId, setSelectedArticleId } = useSelection();
   const { treeData } = useFeeds();
 
@@ -81,6 +82,28 @@ const HeadlineList: React.FC = () => {
     }
   };
 
+  const handleShare = async (article: ApiArticle) => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: article.title,
+          text: `Check out this article: ${article.title}`,
+          url: article.link,
+        });
+      } catch (error) {
+        console.error('Error sharing article:', error);
+      }
+    } else {
+      // Fallback for browsers that don't support the Web Share API
+      navigator.clipboard.writeText(article.link);
+      alert('Link copied to clipboard!');
+    }
+  };
+
+  const handlePublish = (articleId: number, published: boolean) => {
+    markArticleAsPublished(articleId, published);
+  };
+
 
 
   if (isLoading) {
@@ -92,6 +115,7 @@ const HeadlineList: React.FC = () => {
   }
 
   return (
+    <React.Fragment>
     <List disablePadding sx={{ backgroundColor: 'background.paper' }}>
       {headlines.map((headline) => {
         const feedInfo = findFeedInfoInTree(headline.feed_id, treeData);
@@ -107,73 +131,114 @@ const HeadlineList: React.FC = () => {
               else articleRefs.current.delete(headline.id);
             }}
             data-article-id={headline.id}
-            sx={{ flexDirection: 'column', alignItems: 'stretch' }}
+            sx={{ flexDirection: 'column', alignItems: 'stretch', backgroundColor: 'inherit' }}
           >
-            <ListItemButton
-              onClick={() => handleHeadlineClick(headline.id)}
-              sx={{
-                display: 'flex', 
-                flexDirection: 'column', 
-                alignItems: 'flex-start',
-                ...(isSelected && {
-                  position: 'sticky',
-                  top: 64,
-                  zIndex: 1,
-                  backgroundColor: 'background.paper',
-                  borderBottom: 1,
-                  borderColor: 'divider',
-                })
-              }}
-            >
-              <ListItemText
-                primary={headline.title}
-                primaryTypographyProps={{ sx: { fontWeight: headline.unread ? 'bold' : 'normal', mb: 1 } }}
-              />
-              <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                {feedInfo?.iconUrl && (
-                  <Avatar src={feedInfo.iconUrl} sx={{ width: 16, height: 16, mr: 1 }} />
-                )}
-                <Typography variant="caption" sx={{ flexGrow: 1 }}>
-                  {feedInfo?.title || 'Unknown Feed'}
-                </Typography>
-                <Typography variant="caption">
-                  {formatTimestamp(headline.updated)}
-                </Typography>
-              </Box>
-            </ListItemButton>
-            <Collapse in={isSelected} timeout="auto" unmountOnExit>
-              <Box sx={{ p: 2 }}>
-                <ArticleRenderer content={headline.content || ''} />
-              </Box>
-              <Toolbar disableGutters sx={{
-                position: 'sticky',
-                bottom: 0,
-                zIndex: 1,
-                backgroundColor: 'background.paper',
-                borderTop: 1,
-                borderColor: 'divider',
-                justifyContent: 'flex-end',
-                padding: '0 8px',
-              }}>
-                <IconButton onClick={(e) => {
-                  e.stopPropagation();
-                  // Get the latest state of the article directly from the context to avoid stale closures
-                  const currentArticle = headlines.find(h => h.id === headline.id);
-                  if (currentArticle) {
-                    markArticleAsRead(currentArticle.id, currentArticle.feed_id, currentArticle.unread);
-                  }
-                }}>
-                  {headline.unread ? <Mail /> : <MailOutline />}
-                </IconButton>
-                <IconButton onClick={(e) => { e.stopPropagation(); markArticleAsStarred(headline.id, !headline.marked); }}>
-                  {headline.marked ? <Star /> : <StarOutline />}
-                </IconButton>
-              </Toolbar>
-            </Collapse>
+            {isSelected ? (
+              <React.Fragment>
+                <SwipeableListItem disabled={true}>
+                  <ListItemButton
+                    onClick={() => handleHeadlineClick(headline.id)}
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'flex-start',
+                      backgroundColor: 'background.paper',
+                      position: 'sticky',
+                      top: 64, // AppBar height
+                      zIndex: 1100, // Above other content
+                      borderBottom: 1,
+                      borderColor: 'divider',
+                    }}
+                  >
+                    <ListItemText
+                      primary={headline.title}
+                      primaryTypographyProps={{ sx: { fontWeight: headline.unread ? 'bold' : 'normal', fontStyle: headline.marked ? 'italic' : 'normal', mb: 1 } }}
+                    />
+                    <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                      {feedInfo?.iconUrl && (
+                        <Avatar src={feedInfo.iconUrl} sx={{ width: 16, height: 16, mr: 1 }} />
+                      )}
+                      <Typography variant="caption" sx={{ flexGrow: 1 }}>
+                        {feedInfo?.title || 'Unknown Feed'}
+                      </Typography>
+                      <Typography variant="caption">
+                        {formatTimestamp(headline.updated)}
+                      </Typography>
+                    </Box>
+                  </ListItemButton>
+                </SwipeableListItem>
+                <Collapse in={isSelected} timeout="auto" unmountOnExit>
+                  <Box sx={{ p: 2, backgroundColor: 'background.paper' }}>
+                    <ArticleRenderer content={headline.content || ''} />
+                  </Box>
+                  <Toolbar disableGutters sx={{
+                    position: 'sticky',
+                    bottom: 0,
+                    zIndex: 1,
+                    backgroundColor: 'background.paper',
+                    borderTop: 1,
+                    borderColor: 'divider',
+                    justifyContent: 'flex-end',
+                    padding: '0 8px',
+                  }}>
+                    <IconButton onClick={(e) => {
+                      e.stopPropagation();
+                      const currentArticle = headlines.find(h => h.id === headline.id);
+                      if (currentArticle) {
+                        markArticleAsRead(currentArticle.id, currentArticle.feed_id, currentArticle.unread);
+                      }
+                    }}>
+                      {headline.unread ? <Mail /> : <MailOutline />}
+                    </IconButton>
+                    <IconButton onClick={(e) => { e.stopPropagation(); markArticleAsStarred(headline.id, !headline.marked); }}>
+                      {headline.marked ? <Star /> : <StarOutline />}
+                    </IconButton>
+                    <IconButton onClick={(e) => { e.stopPropagation(); handleShare(headline); }}>
+                      <Share />
+                    </IconButton>
+                    <IconButton onClick={(e) => { e.stopPropagation(); handlePublish(headline.id, !headline.published); }}>
+                      <Public />
+                    </IconButton>
+                  </Toolbar>
+                </Collapse>
+              </React.Fragment>
+            ) : (
+              <SwipeableListItem
+                onSwipeLeft={() => markArticleAsRead(headline.id, headline.feed_id, headline.unread)}
+                onSwipeRight={() => markArticleAsStarred(headline.id, !headline.marked)}
+              >
+                <ListItemButton
+                  onClick={() => handleHeadlineClick(headline.id)}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    backgroundColor: 'background.paper',
+                  }}
+                >
+                  <ListItemText
+                    primary={headline.title}
+                    primaryTypographyProps={{ sx: { fontWeight: headline.unread ? 'bold' : 'normal', fontStyle: headline.marked ? 'italic' : 'normal', mb: 1 } }}
+                  />
+                  <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                    {feedInfo?.iconUrl && (
+                      <Avatar src={feedInfo.iconUrl} sx={{ width: 16, height: 16, mr: 1 }} />
+                    )}
+                    <Typography variant="caption" sx={{ flexGrow: 1 }}>
+                      {feedInfo?.title || 'Unknown Feed'}
+                    </Typography>
+                    <Typography variant="caption">
+                      {formatTimestamp(headline.updated)}
+                    </Typography>
+                  </Box>
+                </ListItemButton>
+              </SwipeableListItem>
+            )}
           </ListItem>
         );
       })}
-    </List>
+      </List>
+    </React.Fragment>
   );
 };
 

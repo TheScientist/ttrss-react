@@ -33,6 +33,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     () =>
       createTheme({
         palette: {
+          primary: {
+            main: '#FF9800',
+          },
           mode: settings?.darkMode ? 'dark' : 'light',
         },
       }),

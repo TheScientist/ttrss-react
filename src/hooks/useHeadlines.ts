@@ -5,13 +5,19 @@ import { useFeedContext } from '../contexts/FeedContext.tsx';
 import type { ApiArticle } from '../api/types';
 
 export const useHeadlines = () => {
-  const { incrementUnreadCount, decrementUnreadCount, incrementStarredCount, decrementStarredCount } = useFeedContext();
+  const { incrementUnreadCount, decrementUnreadCount, incrementStarredCount, decrementStarredCount, refetchCounters, incrementPublishedCount, decrementPublishedCount } = useFeedContext();
   const { selection } = useSelection();
   const [headlines, setHeadlines] = useState<ApiArticle[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-
+  const setHeadlinePublishedStatus = useCallback((articleId: number, published: boolean) => {
+    setHeadlines(currentHeadlines =>
+      currentHeadlines.map(headline =>
+        headline.id === articleId ? { ...headline, published } : headline
+      )
+    );
+  }, []);
 
   const setHeadlineStarredStatus = useCallback((articleId: number, starred: boolean) => {
     setHeadlines(currentHeadlines =>
@@ -22,62 +28,95 @@ export const useHeadlines = () => {
   }, []);
 
   const markArticleAsRead = useCallback(async (articleId: number, feedId: number, isCurrentlyUnread: boolean) => {
-    // The action is to toggle the current state. The API's `read` param aligns with `isCurrentlyUnread`.
     const apiAction = isCurrentlyUnread;
 
-    // Optimistically update the UI
     setHeadlines(currentHeadlines =>
       currentHeadlines.map(headline =>
         headline.id === articleId ? { ...headline, unread: !isCurrentlyUnread } : headline
       )
     );
 
-    // Adjust counters based on the action
-    if (apiAction) { // We are marking it as READ
+    if (apiAction) {
       decrementUnreadCount(feedId);
-    } else { // We are marking it as UNREAD
+    } else {
       incrementUnreadCount(feedId);
     }
 
     try {
-      // Make the API call
       await apiService.markArticleAsRead(articleId, apiAction);
     } catch (e) {
       console.error(`Failed to mark article ${articleId} as read.`, e);
-      // Revert the UI changes on error
       setHeadlines(currentHeadlines =>
         currentHeadlines.map(headline =>
           headline.id === articleId ? { ...headline, unread: isCurrentlyUnread } : headline
         )
       );
-      // Revert the counter changes
       if (apiAction) {
         incrementUnreadCount(feedId);
       } else {
         decrementUnreadCount(feedId);
       }
     }
-  }, [decrementUnreadCount, incrementUnreadCount]);
+  }, [incrementUnreadCount, decrementUnreadCount]);
+
+  const markFeedAsRead = useCallback(async (feedId: number, isCategory: boolean) => {
+    try {
+      await apiService.catchupFeed(feedId, isCategory);
+      setHeadlines(currentHeadlines => 
+        currentHeadlines.map(h => ({ ...h, unread: false }))
+      );
+      await refetchCounters();
+    } catch (e) {
+      console.error(`Failed to catchup feed ${feedId}`, e);
+    }
+  }, [refetchCounters]);
 
   const markArticleAsStarred = useCallback(async (articleId: number, starred: boolean) => {
+    setHeadlineStarredStatus(articleId, starred);
+    if (starred) {
+      incrementStarredCount();
+    } else {
+      decrementStarredCount();
+    }
+
     try {
       await apiService.markArticleAsStarred(articleId, starred);
-      setHeadlineStarredStatus(articleId, starred);
-      if (starred) {
-        incrementStarredCount();
-      } else {
-        decrementStarredCount();
-      }
     } catch (e) {
       console.error(`Failed to mark article ${articleId} as starred.`, e);
-      // Optionally, revert the UI change here or show an error
+      setHeadlineStarredStatus(articleId, !starred);
+       if (starred) {
+        decrementStarredCount();
+      } else {
+        incrementStarredCount();
+      }
     }
   }, [setHeadlineStarredStatus, incrementStarredCount, decrementStarredCount]);
 
+  const markArticleAsPublished = useCallback(async (articleId: number, published: boolean) => {
+    setHeadlinePublishedStatus(articleId, published);
+    if (published) {
+      incrementPublishedCount();
+    } else {
+      decrementPublishedCount();
+    }
+
+    try {
+      await apiService.markArticleAsPublished(articleId, published);
+    } catch (e) {
+      console.error(`Failed to mark article ${articleId} as published.`, e);
+      // Revert on error
+      setHeadlinePublishedStatus(articleId, !published);
+      if (published) {
+        decrementPublishedCount();
+      } else {
+        incrementPublishedCount();
+      }
+    }
+  }, [setHeadlinePublishedStatus, incrementPublishedCount, decrementPublishedCount]);
+
   const fetchArticleContent = useCallback(async (articleId: number) => {
-    // Avoid refetching if content seems complete
     const existingArticle = headlines.find(h => h.id === articleId);
-    if (existingArticle?.content && existingArticle.content.length > 200) { // Heuristic check
+    if (existingArticle?.content && existingArticle.content.length > 200) {
       return;
     }
 
@@ -120,5 +159,5 @@ export const useHeadlines = () => {
     fetchHeadlines();
   }, [selection]);
 
-  return { headlines, isLoading, error, markArticleAsRead, markArticleAsStarred, fetchArticleContent };
+  return { headlines, isLoading, error, markArticleAsRead, markFeedAsRead, markArticleAsStarred, fetchArticleContent, markArticleAsPublished };
 };

@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { AppBar, Toolbar, IconButton, Typography, Box, Drawer, Avatar } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import ConfirmationDialog from '../ConfirmationDialog';
 import SettingsIcon from '@mui/icons-material/Settings';
+import DoneAllIcon from '@mui/icons-material/DoneAll';
 import FeedTree from '../FeedTree';
 import ErrorBoundary from '../ErrorBoundary';
 import { useSelection } from '../../contexts/SelectionContext';
 import { useFeeds } from '../../hooks/useFeeds';
+import { useHeadlinesContext } from '../../contexts/HeadlinesContext';
 import { useNavigate } from 'react-router-dom';
 
 const drawerWidth = 240;
@@ -17,8 +20,10 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isCatchupDialogOpen, setCatchupDialogOpen] = useState(false);
   const { selection } = useSelection();
   const { treeData } = useFeeds();
+  const { markFeedAsRead } = useHeadlinesContext();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -123,6 +128,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               </Typography>
             )}
           </Box>
+          {selectedFeed && (
+            <IconButton color="inherit" onClick={() => setCatchupDialogOpen(true)} title="Mark all as read">
+              <DoneAllIcon />
+            </IconButton>
+          )}
           <IconButton color="inherit" onClick={() => navigate('/settings')}>
             <SettingsIcon />
           </IconButton>
@@ -158,14 +168,36 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           {drawer}
         </Drawer>
       </Box>
+      <ConfirmationDialog
+        open={isCatchupDialogOpen}
+        onClose={() => setCatchupDialogOpen(false)}
+        onConfirm={() => {
+          if (selection) {
+            markFeedAsRead(selection.id, selection.isCategory);
+          }
+          setCatchupDialogOpen(false);
+        }}
+        title="Mark all as read?"
+      >
+        Are you sure you want to mark all articles in this feed as read? This action cannot be undone.
+      </ConfirmationDialog>
+
       <Box
         component="main"
-        sx={{ flexGrow: 1, width: { sm: `calc(100% - ${drawerWidth}px)` } }}
+        sx={{
+          flexGrow: 1,
+          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100vh',
+        }}
       >
         <Toolbar />
-        <ErrorBoundary>
-          {children}
-        </ErrorBoundary>
+        <Box sx={{ flexGrow: 1, overflowY: 'auto', p: 3 }}>
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
+        </Box>
       </Box>
     </Box>
   );

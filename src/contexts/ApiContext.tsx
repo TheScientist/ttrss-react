@@ -6,6 +6,7 @@ interface ApiContextType {
   isLoggedIn: boolean;
   isLoading: boolean;
   error: string | null;
+  apiService: typeof apiService;
 }
 
 const ApiContext = createContext<ApiContextType | undefined>(undefined);
@@ -43,7 +44,7 @@ export const ApiProvider = ({ children }: { children: ReactNode }) => {
   }, [settings]);
 
   return (
-    <ApiContext.Provider value={{ isLoggedIn, isLoading, error }}>
+    <ApiContext.Provider value={{ isLoggedIn, isLoading, error, apiService }}>
       {children}
     </ApiContext.Provider>
   );
