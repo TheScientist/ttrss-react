@@ -144,6 +144,12 @@ class ApiService {
   }
 
   public getFeedIconUrl(feedId: number): string {
+    if (this.apiClient?.defaults.baseURL) {
+      // Assuming baseURL is like https://example.com/tt-rss/api/, we want https://example.com/tt-rss/
+      const baseUrl = this.apiClient.defaults.baseURL.replace(/api\/?$/, '');
+      return `${baseUrl}public.php?op=feed_icon&id=${feedId}`;
+    }
+    // Fallback for when API client is not initialized
     return `/public.php?op=feed_icon&id=${feedId}`;
   }
 }
