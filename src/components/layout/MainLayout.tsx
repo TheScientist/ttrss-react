@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { AppBar, Toolbar, IconButton, Typography, Box, Drawer, Avatar } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import SettingsIcon from '@mui/icons-material/Settings';
 import FeedTree from '../FeedTree';
 import ErrorBoundary from '../ErrorBoundary';
 import { useSelection } from '../../contexts/SelectionContext';
 import { useFeeds } from '../../hooks/useFeeds';
+import { useNavigate } from 'react-router-dom';
 
 const drawerWidth = 240;
 
@@ -13,6 +15,7 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+  const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { selection } = useSelection();
   const { treeData } = useFeeds();
@@ -55,7 +58,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   
   const selectedFeed = getSelectedFeedInfo();
 
-    const drawer = (
+  const drawer = (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Toolbar />
       <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
@@ -82,42 +85,47 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           >
             <MenuIcon />
           </IconButton>
-          {selectedFeed ? (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              {selectedFeed.iconUrl ? (
-                <Avatar 
-                  src={selectedFeed.iconUrl}
-                  sx={{ 
-                    width: 24, 
-                    height: 24,
-                    '& .MuiAvatar-img': {
-                      objectFit: 'contain'
-                    }
-                  }}
-                />
-              ) : selectedFeed.muiIcon ? (
-                <i 
-                  className="material-icons" 
-                  style={{ 
-                    fontSize: '24px',
-                    width: '24px',
-                    height: '24px',
-                    display: 'flex',
-                    alignItems: 'center'
-                  }}
-                >
-                  {selectedFeed.muiIcon}
-                </i>
-              ) : null}
+          <Box sx={{ flexGrow: 1 }}>
+            {selectedFeed ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {selectedFeed.iconUrl ? (
+                  <Avatar 
+                    src={selectedFeed.iconUrl}
+                    sx={{ 
+                      width: 24, 
+                      height: 24,
+                      '& .MuiAvatar-img': {
+                        objectFit: 'contain'
+                      }
+                    }}
+                  />
+                ) : selectedFeed.muiIcon ? (
+                  <i 
+                    className="material-icons" 
+                    style={{ 
+                      fontSize: '24px',
+                      width: '24px',
+                      height: '24px',
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}
+                  >
+                    {selectedFeed.muiIcon}
+                  </i>
+                ) : null}
+                <Typography variant="h6" noWrap component="div">
+                  {selectedFeed.title}
+                </Typography>
+              </Box>
+            ) : (
               <Typography variant="h6" noWrap component="div">
-                {selectedFeed.title}
+                Tiny Tiny RSS
               </Typography>
-            </Box>
-          ) : (
-            <Typography variant="h6" noWrap component="div">
-              Tiny Tiny RSS
-            </Typography>
-          )}
+            )}
+          </Box>
+          <IconButton color="inherit" onClick={() => navigate('/settings')}>
+            <SettingsIcon />
+          </IconButton>
         </Toolbar>
       </AppBar>
       <Box
@@ -152,7 +160,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       </Box>
       <Box
         component="main"
-        sx={{ flexGrow: 1, p: 3, width: { sm: `calc(100% - ${drawerWidth}px)` } }}
+        sx={{ flexGrow: 1, width: { sm: `calc(100% - ${drawerWidth}px)` } }}
       >
         <Toolbar />
         <ErrorBoundary>

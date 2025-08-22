@@ -14,24 +14,91 @@ export const useFeeds = () => {
   const decrementUnreadCount = useCallback((feedId: number) => {
     setTreeData(currentTreeData => {
       const newTreeData = JSON.parse(JSON.stringify(currentTreeData));
-      let categoryToUpdate = null;
 
+      let feedFound = false;
       for (const category of newTreeData) {
-        const feedToUpdate = category.feeds.find((f: ApiFeed) => f.id === feedId);
-        if (feedToUpdate && feedToUpdate.unread > 0) {
-          feedToUpdate.unread -= 1;
-          categoryToUpdate = category;
+        const feed = category.feeds.find((f: ApiFeed) => f.id === feedId);
+        if (feed && feed.unread > 0) {
+          feed.unread -= 1;
+          feedFound = true;
+          if (category.id !== -1) {
+            category.unread = Math.max(0, category.unread - 1);
+          }
+          break; 
+        }
+      }
+
+      if (feedFound) {
+          const specialCategory = newTreeData.find((c: TreeCategory) => c.id === -1);
+          if (specialCategory) {
+            const unreadFeed = specialCategory.feeds.find((f: ApiFeed) => f.id === -3); // -3 is Unread Articles
+            if (unreadFeed && unreadFeed.unread > 0) {
+              unreadFeed.unread -= 1;
+            }
+          }
+      }
+      
+      return newTreeData;
+    });
+  }, [setTreeData]);
+  const incrementUnreadCount = useCallback((feedId: number) => {
+    setTreeData(currentTreeData => {
+      const newTreeData: TreeCategory[] = JSON.parse(JSON.stringify(currentTreeData));
+      let feedFound = false;
+      for (const category of newTreeData) {
+        const feed = category.feeds.find((f: ApiFeed) => f.id === feedId);
+        if (feed) {
+          feed.unread += 1;
+          feedFound = true;
+          if (category.id !== -1) {
+            category.unread += 1;
+          }
           break;
         }
       }
 
-      if (categoryToUpdate && categoryToUpdate.unread > 0) {
-        categoryToUpdate.unread -= 1;
+      if (feedFound) {
+        const specialCategory = newTreeData.find((c: TreeCategory) => c.id === -1);
+        if (specialCategory) {
+          const unreadFeed = specialCategory.feeds.find((f: ApiFeed) => f.id === -3); // -3 is Unread Articles
+          if (unreadFeed) {
+            unreadFeed.unread += 1;
+          }
+        }
       }
 
       return newTreeData;
     });
-  }, []);
+  }, [setTreeData]);
+
+  const incrementStarredCount = useCallback(() => {
+    setTreeData(currentTreeData => {
+      const newTreeData: TreeCategory[] = JSON.parse(JSON.stringify(currentTreeData));
+      const specialCategory = newTreeData.find((c: TreeCategory) => c.id === -1);
+      if (specialCategory) {
+        const starredFeed = specialCategory.feeds.find((f: ApiFeed) => f.id === -1);
+        if (starredFeed) {
+          starredFeed.unread += 1;
+        }
+      }
+      return newTreeData;
+    });
+  }, [setTreeData]);
+
+  const decrementStarredCount = useCallback(() => {
+    setTreeData(currentTreeData => {
+      const newTreeData: TreeCategory[] = JSON.parse(JSON.stringify(currentTreeData));
+      const specialCategory = newTreeData.find((c: TreeCategory) => c.id === -1);
+      if (specialCategory) {
+        const starredFeed = specialCategory.feeds.find((f: ApiFeed) => f.id === -1);
+        if (starredFeed && starredFeed.unread > 0) {
+          starredFeed.unread -= 1;
+        }
+      }
+      return newTreeData;
+    });
+  }, [setTreeData]);
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -97,5 +164,5 @@ export const useFeeds = () => {
     fetchFeeds();
   }, [fetchFeeds]);
 
-  return { treeData, isLoading, error, fetchFeeds, decrementUnreadCount };
+  return { treeData, isLoading, error, fetchFeeds, incrementUnreadCount, decrementUnreadCount, incrementStarredCount, decrementStarredCount };
 };

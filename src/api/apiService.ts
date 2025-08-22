@@ -77,6 +77,18 @@ class ApiService {
     return response.content;
   }
 
+  public async getArticle(articleId: number): Promise<ApiArticle> {
+    const response = await this.request<ApiArticle[]>({ op: 'getArticle', article_id: articleId });
+    if (response.content && response.content.length > 0) {
+      const article = response.content[0];
+      return {
+        ...article,
+        updated: parseInt(article.updated as any, 10),
+      };
+    }
+    throw new Error('Article not found');
+  }
+
   public async getHeadlines(
     feedId: number,
     isCategory: boolean = false
@@ -86,7 +98,7 @@ class ApiService {
       feed_id: feedId,
       is_cat: isCategory,
       view_mode: 'all_articles',
-      show_content: false,
+      show_content: false, // Important: we don't fetch full content for list
     });
     return response.content.map((article) => ({
       ...article,
@@ -94,26 +106,21 @@ class ApiService {
     }));
   }
 
-  public async getArticle(articleId: number): Promise<ApiArticle> {
-    const response = await this.request<ApiArticle[]>({
-      op: 'getArticle',
-      article_id: articleId,
-    });
-    // The API returns an array with a single article
-    const article = response.content[0];
-    return {
-      ...article,
-      updated: parseInt(article.updated as any, 10),
-    };
-  }
-
-  public async markArticleAsRead(articleId: number): Promise<void> {
+  private async updateArticle(articleId: number, field: number, mode: number): Promise<void> {
     await this.request({
       op: 'updateArticle',
       article_ids: `${articleId}`,
-      mode: 0, // set to false
-      field: 2, // unread
+      mode,
+      field,
     });
+  }
+
+  public async markArticleAsRead(articleId: number, read = true): Promise<void> {
+    await this.updateArticle(articleId, 2, read ? 0 : 1); // field=2 (unread), mode=0 (set unread to false -> article is read), mode=1 (set unread to true -> article is unread)
+  }
+
+  public async markArticleAsStarred(articleId: number, starred: boolean): Promise<void> {
+    await this.updateArticle(articleId, 0, starred ? 1 : 0); // field=0 (starred), mode=1 (true) or 0 (false)
   }
 
   public getFeedIconUrl(feedId: number): string {

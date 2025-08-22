@@ -1,6 +1,8 @@
-import { createContext, useState, useContext, type ReactNode, useEffect } from 'react';
+import { createContext, useState, useContext, type ReactNode, useEffect, useMemo } from 'react';
 import type { Settings } from '../types/settings';
 import { getSettings, saveSettings } from '../store/settings';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { GlobalStyles, CssBaseline } from '@mui/material';
 
 interface SettingsContextType {
   settings: Settings | null;
@@ -27,9 +29,25 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     saveSettings(newSettings);
   };
 
+  const theme = useMemo(
+    () =>
+      createTheme({
+        palette: {
+          mode: settings?.darkMode ? 'dark' : 'light',
+        },
+      }),
+    [settings?.darkMode]
+  );
+
+  const value = { settings, setSettings: handleSetSettings, isInitialized };
+
   return (
-    <SettingsContext.Provider value={{ settings, setSettings: handleSetSettings, isInitialized }}>
-      {children}
+    <SettingsContext.Provider value={value}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <GlobalStyles styles={{ body: { margin: 0 } }} />
+        {children}
+      </ThemeProvider>
     </SettingsContext.Provider>
   );
 };

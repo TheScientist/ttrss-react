@@ -3,15 +3,14 @@ import { useSettings } from './contexts/SettingsContext';
 import SettingsPage from './pages/SettingsPage';
 import { CircularProgress, Box } from '@mui/material';
 
+
 import MainLayout from './components/layout/MainLayout';
 import HeadlineList from './components/HeadlineList';
 
 
 const MainPage = () => (
   <MainLayout>
-    <Box sx={{ height: 'calc(100vh - 64px)', overflowY: 'auto' }}>
-      <HeadlineList />
-    </Box>
+    <HeadlineList />
   </MainLayout>
 );
 

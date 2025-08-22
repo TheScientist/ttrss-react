@@ -1,9 +1,16 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+import { debounce } from '@mui/material/utils';
 import { useHeadlinesContext } from '../contexts/HeadlinesContext';
 import { useSelection } from '../contexts/SelectionContext';
 import { useFeeds } from '../hooks/useFeeds';
-import { List, ListItem, ListItemButton, ListItemText, CircularProgress, Typography, Box, Paper, Collapse, Avatar } from '@mui/material';
+import {
+  List, ListItem, ListItemButton, ListItemText, CircularProgress, Typography, Box, 
+  Collapse, Avatar, Toolbar, IconButton
+} from '@mui/material';
+import { Mail, MailOutline, Star, StarOutline } from '@mui/icons-material';
 import ArticleRenderer from './ArticleRenderer';
+import type { ApiArticle } from '../api/types';
+import { findFeedInfoInTree } from '../utils/feedUtils';
 
 // Format timestamp according to browser's locale
 const formatTimestamp = (timestamp: number): string => {
@@ -11,132 +18,162 @@ const formatTimestamp = (timestamp: number): string => {
 };
 
 const HeadlineList: React.FC = () => {
-  const { headlines, isLoading, error } = useHeadlinesContext();
-  const { selectedArticleId, setSelectedArticleId, selection } = useSelection();
+  const articleRefs = useRef<Map<number, HTMLLIElement>>(new Map());
+  const { headlines, isLoading, error, markArticleAsRead, markArticleAsStarred, fetchArticleContent } = useHeadlinesContext();
+  const { selectedArticleId, setSelectedArticleId } = useSelection();
   const { treeData } = useFeeds();
-  
-  // Find feed info for a specific feed ID
-  const getFeedInfo = (feedId: number) => {
-    if (!treeData) return null;
-    
-    // Check all categories and their feeds
-    for (const category of treeData) {
-      // Check if this is the feed we're looking for
-      const feed = category.feeds.find(f => f.id === feedId);
-      if (feed) {
-        return {
-          title: feed.title,
-          iconUrl: feed.iconUrl,
-        };
+
+  // Scroll-to-mark-as-read logic (kept from previous implementation)
+  useEffect(() => {
+    const handleScroll = debounce(() => {
+      if (headlines.length === 0 || selectedArticleId) return;
+
+      const articlesToMark = new Set<number>();
+      const articlesAboveViewport: ApiArticle[] = [];
+      const articlesInViewport: (ApiArticle & { rect: DOMRect })[] = [];
+
+      headlines.forEach(article => {
+        const el = articleRefs.current.get(article.id);
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        if (rect.bottom < 0) {
+          articlesAboveViewport.push(article);
+        } else if (rect.top < window.innerHeight && rect.bottom >= 0) {
+          articlesInViewport.push({ ...article, rect });
+        }
+      });
+
+      articlesAboveViewport.forEach(article => {
+        if (article.unread) articlesToMark.add(article.id);
+      });
+
+      articlesInViewport.sort((a, b) => a.rect.top - b.rect.top);
+      articlesInViewport.slice(0, 2).forEach(article => {
+        if (article.unread) articlesToMark.add(article.id);
+      });
+
+      if (articlesToMark.size > 0) {
+        articlesToMark.forEach(articleId => {
+          const article = headlines.find(h => h.id === articleId);
+          if (article) markArticleAsRead(article.id, article.feed_id, true);
+        });
       }
-    }
-    
-    return null;
-  };
-  
-  // Check if we should show feed info (for categories and special feeds)
-  const shouldShowFeedInfo = selection && (selection.isCategory || selection.id <= 0);
+    }, 300);
+
+    window.addEventListener('scroll', handleScroll, true);
+    return () => {
+      window.removeEventListener('scroll', handleScroll, true);
+      handleScroll.clear();
+    };
+  }, [headlines, markArticleAsRead, selectedArticleId]);
 
   const handleHeadlineClick = (articleId: number) => {
     if (selectedArticleId === articleId) {
-      setSelectedArticleId(null); // Collapse if the same headline is clicked again
+      setSelectedArticleId(null);
     } else {
       setSelectedArticleId(articleId);
+      fetchArticleContent(articleId); // Fetch full content for the article
+      const article = headlines.find(h => h.id === articleId);
+      if (article?.unread) {
+        // Explicitly mark as read
+        markArticleAsRead(article.id, article.feed_id, true);
+      }
     }
   };
 
+
+
   if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-        <CircularProgress />
-      </Box>
-    );
+    return <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress /></Box>;
   }
 
   if (error) {
-    return (
-      <Box sx={{ p: 2 }}>
-        <Typography color="error">{error}</Typography>
-      </Box>
-    );
-  }
-
-  if (headlines.length === 0) {
-    return (
-      <Box sx={{ p: 2 }}>
-        <Typography>Select a feed to see headlines.</Typography>
-      </Box>
-    );
+    return <Box sx={{ p: 2 }}><Typography color="error">{error}</Typography></Box>;
   }
 
   return (
-    <Paper>
-      <List>
-                {headlines.map((article) => (
-          <React.Fragment key={article.id}>
-            <ListItemButton onClick={() => handleHeadlineClick(article.id)}>
-              <ListItemText
-                primary={article.title}
-                secondary={
-                  <Box>
-                    <Box component="span">
-                      {article.author && article.author.trim() !== '' ? (
-                        <>
-                          <Typography component="span" variant="body2" color="text.primary">
-                            {article.author}
-                          </Typography>
-                          {' • '}
-                        </>
-                      ) : null}
-                      <Typography component="span" variant="body2" color="text.secondary">
-                        {formatTimestamp(article.updated)}
-                      </Typography>
-                    </Box>
-                    {shouldShowFeedInfo && (() => {
-                      const feedInfo = getFeedInfo(article.feed_id);
-                      if (!feedInfo) return null;
-                      
-                      return (
-                        <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
-                          {feedInfo.iconUrl && (
-                            <Avatar 
-                              src={feedInfo.iconUrl} 
-                              sx={{ 
-                                width: 14, 
-                                height: 14, 
-                                mr: 0.5,
-                                '& .MuiAvatar-img': {
-                                  objectFit: 'contain'
-                                }
-                              }}
-                            />
-                          )}
-                          <Typography variant="caption" color="text.secondary">
-                            {feedInfo.title}
-                          </Typography>
-                        </Box>
-                      );
-                    })()}
-                  </Box>
-                }
-                primaryTypographyProps={{
-                  style: {
-                    fontWeight: article.unread ? 'bold' : 'normal',
-                  },
-                }}
-                secondaryTypographyProps={{ component: 'div' }}
-              />
+    <List disablePadding sx={{ backgroundColor: 'background.paper' }}>
+      {headlines.map((headline) => {
+        const feedInfo = findFeedInfoInTree(headline.feed_id, treeData);
+        const isSelected = selectedArticleId === headline.id;
 
+        return (
+          <ListItem
+            key={headline.id}
+            disablePadding
+            divider
+            ref={node => {
+              if (node) articleRefs.current.set(headline.id, node);
+              else articleRefs.current.delete(headline.id);
+            }}
+            data-article-id={headline.id}
+            sx={{ flexDirection: 'column', alignItems: 'stretch' }}
+          >
+            <ListItemButton
+              onClick={() => handleHeadlineClick(headline.id)}
+              sx={{
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'flex-start',
+                ...(isSelected && {
+                  position: 'sticky',
+                  top: 64,
+                  zIndex: 1,
+                  backgroundColor: 'background.paper',
+                  borderBottom: 1,
+                  borderColor: 'divider',
+                })
+              }}
+            >
+              <ListItemText
+                primary={headline.title}
+                primaryTypographyProps={{ sx: { fontWeight: headline.unread ? 'bold' : 'normal', mb: 1 } }}
+              />
+              <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                {feedInfo?.iconUrl && (
+                  <Avatar src={feedInfo.iconUrl} sx={{ width: 16, height: 16, mr: 1 }} />
+                )}
+                <Typography variant="caption" sx={{ flexGrow: 1 }}>
+                  {feedInfo?.title || 'Unknown Feed'}
+                </Typography>
+                <Typography variant="caption">
+                  {formatTimestamp(headline.updated)}
+                </Typography>
+              </Box>
             </ListItemButton>
-            <Collapse in={selectedArticleId === article.id} timeout="auto" unmountOnExit>
-              <ListItem>
-                <ArticleRenderer articleId={article.id} />
-              </ListItem>
+            <Collapse in={isSelected} timeout="auto" unmountOnExit>
+              <Box sx={{ p: 2 }}>
+                <ArticleRenderer content={headline.content || ''} />
+              </Box>
+              <Toolbar disableGutters sx={{
+                position: 'sticky',
+                bottom: 0,
+                zIndex: 1,
+                backgroundColor: 'background.paper',
+                borderTop: 1,
+                borderColor: 'divider',
+                justifyContent: 'flex-end',
+                padding: '0 8px',
+              }}>
+                <IconButton onClick={(e) => {
+                  e.stopPropagation();
+                  // Get the latest state of the article directly from the context to avoid stale closures
+                  const currentArticle = headlines.find(h => h.id === headline.id);
+                  if (currentArticle) {
+                    markArticleAsRead(currentArticle.id, currentArticle.feed_id, currentArticle.unread);
+                  }
+                }}>
+                  {headline.unread ? <Mail /> : <MailOutline />}
+                </IconButton>
+                <IconButton onClick={(e) => { e.stopPropagation(); markArticleAsStarred(headline.id, !headline.marked); }}>
+                  {headline.marked ? <Star /> : <StarOutline />}
+                </IconButton>
+              </Toolbar>
             </Collapse>
-          </React.Fragment>
-        ))}
-      </List>
-    </Paper>
+          </ListItem>
+        );
+      })}
+    </List>
   );
 };
 

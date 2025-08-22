@@ -1,24 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
-import { Container, TextField, Button, Typography, Box } from '@mui/material';
+import { Container, TextField, Button, Typography, Box, Switch, FormControlLabel } from '@mui/material';
 
 const SettingsPage: React.FC = () => {
   const { settings, setSettings } = useSettings();
         const [apiUrl, setApiUrl] = useState('/api');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     if (settings) {
       setApiUrl(settings.apiUrl);
       setUsername(settings.username);
       setPassword(settings.password);
+      setDarkMode(settings.darkMode || false);
     }
   }, [settings]);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    setSettings({ apiUrl, username, password });
+    setSettings({ apiUrl, username, password, darkMode });
   };
 
   return (
@@ -55,6 +57,10 @@ const SettingsPage: React.FC = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+          />
+          <FormControlLabel
+            control={<Switch checked={darkMode} onChange={(e) => setDarkMode(e.target.checked)} />}
+            label="Dark Mode"
           />
           <Button type="submit" variant="contained" color="primary" sx={{ mt: 2 }}>
             Save Settings

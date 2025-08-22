@@ -5,21 +5,24 @@ interface FeedContextType {
   treeData: TreeCategory[];
   isLoading: boolean;
   error: string | null;
-    refetchFeeds: () => void;
+  refetchFeeds: () => void;
+  incrementUnreadCount: (feedId: number) => void;
   decrementUnreadCount: (feedId: number) => void;
+  incrementStarredCount: () => void;
+  decrementStarredCount: () => void;
 }
 
 const FeedContext = createContext<FeedContextType | undefined>(undefined);
 
 export const FeedProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const { treeData, isLoading, error, fetchFeeds, decrementUnreadCount } = useFeeds();
+    const { treeData, isLoading, error, fetchFeeds, incrementUnreadCount, decrementUnreadCount, incrementStarredCount, decrementStarredCount } = useFeeds();
 
   const refetchFeeds = useCallback(() => {
     fetchFeeds();
   }, [fetchFeeds]);
 
   return (
-    <FeedContext.Provider value={{ treeData, isLoading, error, refetchFeeds, decrementUnreadCount }}>
+    <FeedContext.Provider value={{ treeData, isLoading, error, refetchFeeds, incrementUnreadCount, decrementUnreadCount, incrementStarredCount, decrementStarredCount }}>
       {children}
     </FeedContext.Provider>
   );

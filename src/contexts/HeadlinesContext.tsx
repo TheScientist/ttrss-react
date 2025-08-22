@@ -3,10 +3,13 @@ import { useHeadlines } from '../hooks/useHeadlines.ts';
 import type { ApiArticle } from '../api/types.ts';
 
 interface HeadlinesContextType {
+  markArticleAsRead: (articleId: number, feedId: number, isCurrentlyUnread: boolean) => Promise<void>;
   headlines: ApiArticle[];
   isLoading: boolean;
   error: string | null;
-  setHeadlineUnreadStatus: (articleId: number, unread: boolean) => void;
+
+  markArticleAsStarred: (articleId: number, starred: boolean) => Promise<void>;
+  fetchArticleContent: (articleId: number) => Promise<void>;
 }
 
 const HeadlinesContext = createContext<HeadlinesContextType | undefined>(
@@ -14,10 +17,12 @@ const HeadlinesContext = createContext<HeadlinesContextType | undefined>(
 );
 
 export const HeadlinesProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const headlinesData = useHeadlines();
+  const { headlines, isLoading, error, markArticleAsRead, markArticleAsStarred, fetchArticleContent } = useHeadlines();
+
+  const value = { headlines, isLoading, error, markArticleAsRead, markArticleAsStarred, fetchArticleContent };
 
   return (
-    <HeadlinesContext.Provider value={headlinesData}>
+    <HeadlinesContext.Provider value={value}>
       {children}
     </HeadlinesContext.Provider>
   );
