@@ -1,11 +1,12 @@
 import React, { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { debounce } from '@mui/material/utils';
 import { useHeadlinesContext } from '../contexts/HeadlinesContext';
 import { useSelection } from '../contexts/SelectionContext';
 import { useFeeds } from '../hooks/useFeeds';
 import {
   List, ListItem, ListItemButton, ListItemText, CircularProgress, Typography, Box, 
-  Collapse, Avatar, Toolbar, IconButton
+  Collapse, Avatar, Toolbar, IconButton, Tooltip
 } from '@mui/material';
 import { Mail, MailOutline, Star, StarOutline, Share, Public } from '@mui/icons-material';
 import ArticleRenderer from './ArticleRenderer';
@@ -19,6 +20,7 @@ const formatTimestamp = (timestamp: number): string => {
 };
 
 const HeadlineList: React.FC = () => {
+  const { t } = useTranslation();
   const articleRefs = useRef<Map<number, HTMLLIElement>>(new Map());
   const { headlines, isLoading, error, markArticleAsRead, markArticleAsStarred, fetchArticleContent, markArticleAsPublished } = useHeadlinesContext();
   const { selectedArticleId, setSelectedArticleId } = useSelection();
@@ -87,7 +89,7 @@ const HeadlineList: React.FC = () => {
       try {
         await navigator.share({
           title: article.title,
-          text: `Check out this article: ${article.title}`,
+          text: t('share_text', { title: article.title }),
           url: article.link,
         });
       } catch (error) {
@@ -96,7 +98,7 @@ const HeadlineList: React.FC = () => {
     } else {
       // Fallback for browsers that don't support the Web Share API
       navigator.clipboard.writeText(article.link);
-      alert('Link copied to clipboard!');
+      alert(t('link_copied_to_clipboard'));
     }
   };
 
@@ -159,7 +161,7 @@ const HeadlineList: React.FC = () => {
                         <Avatar src={feedInfo.iconUrl} sx={{ width: 16, height: 16, mr: 1 }} />
                       )}
                       <Typography variant="caption" sx={{ flexGrow: 1 }}>
-                        {feedInfo?.title || 'Unknown Feed'}
+                        {feedInfo?.title || t('unknown_feed')}
                       </Typography>
                       <Typography variant="caption">
                         {formatTimestamp(headline.updated)}
@@ -181,24 +183,32 @@ const HeadlineList: React.FC = () => {
                     justifyContent: 'flex-end',
                     padding: '0 8px',
                   }}>
-                    <IconButton onClick={(e) => {
-                      e.stopPropagation();
-                      const currentArticle = headlines.find(h => h.id === headline.id);
-                      if (currentArticle) {
-                        markArticleAsRead(currentArticle.id, currentArticle.feed_id, currentArticle.unread);
-                      }
-                    }}>
-                      {headline.unread ? <Mail /> : <MailOutline />}
-                    </IconButton>
-                    <IconButton onClick={(e) => { e.stopPropagation(); markArticleAsStarred(headline.id, !headline.marked); }}>
-                      {headline.marked ? <Star /> : <StarOutline />}
-                    </IconButton>
-                    <IconButton onClick={(e) => { e.stopPropagation(); handleShare(headline); }}>
-                      <Share />
-                    </IconButton>
-                    <IconButton onClick={(e) => { e.stopPropagation(); handlePublish(headline.id, !headline.published); }}>
-                      <Public />
-                    </IconButton>
+                    <Tooltip title={t('toggle_read')}>
+                      <IconButton onClick={(e) => {
+                        e.stopPropagation();
+                        const currentArticle = headlines.find(h => h.id === headline.id);
+                        if (currentArticle) {
+                          markArticleAsRead(currentArticle.id, currentArticle.feed_id, currentArticle.unread);
+                        }
+                      }}>
+                        {headline.unread ? <Mail /> : <MailOutline />}
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title={t('toggle_star')}>
+                      <IconButton onClick={(e) => { e.stopPropagation(); markArticleAsStarred(headline.id, !headline.marked); }}>
+                        {headline.marked ? <Star /> : <StarOutline />}
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title={t('share_article')}>
+                      <IconButton onClick={(e) => { e.stopPropagation(); handleShare(headline); }}>
+                        <Share />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title={t('toggle_publish')}>
+                      <IconButton onClick={(e) => { e.stopPropagation(); handlePublish(headline.id, !headline.published); }}>
+                        <Public />
+                      </IconButton>
+                    </Tooltip>
                   </Toolbar>
                 </Collapse>
               </React.Fragment>
@@ -225,7 +235,7 @@ const HeadlineList: React.FC = () => {
                       <Avatar src={feedInfo.iconUrl} sx={{ width: 16, height: 16, mr: 1 }} />
                     )}
                     <Typography variant="caption" sx={{ flexGrow: 1 }}>
-                      {feedInfo?.title || 'Unknown Feed'}
+                      {feedInfo?.title || t('unknown_feed')}
                     </Typography>
                     <Typography variant="caption">
                       {formatTimestamp(headline.updated)}

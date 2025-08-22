@@ -8,6 +8,7 @@ import { FeedProvider } from './contexts/FeedContext';
 import { HeadlinesProvider } from './contexts/HeadlinesContext';
 import App from './App';
 import './index.css';
+import './i18n'; // Initialize i18next
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

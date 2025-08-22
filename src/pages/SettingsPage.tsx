@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSettings } from '../contexts/SettingsContext';
 import { Container, TextField, Button, Typography, Box, Switch, FormControlLabel } from '@mui/material';
 
 const SettingsPage: React.FC = () => {
+  const { t } = useTranslation();
   const { settings, setSettings } = useSettings();
         const [apiUrl, setApiUrl] = useState('/api');
   const [username, setUsername] = useState('');
@@ -29,11 +31,11 @@ const SettingsPage: React.FC = () => {
     <Container maxWidth="sm">
       <Box sx={{ mt: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom>
-          Settings
+          {t('settings_title')}
         </Typography>
         <form onSubmit={handleSubmit}>
           <TextField
-            label="API URL"
+            label={t('api_url_label')}
             variant="outlined"
             fullWidth
             margin="normal"
@@ -42,7 +44,7 @@ const SettingsPage: React.FC = () => {
             required
           />
           <TextField
-            label="Username"
+            label={t('username_label')}
             variant="outlined"
             fullWidth
             margin="normal"
@@ -51,7 +53,7 @@ const SettingsPage: React.FC = () => {
             required
           />
           <TextField
-            label="Password"
+            label={t('password_label')}
             type="password"
             variant="outlined"
             fullWidth
@@ -62,10 +64,10 @@ const SettingsPage: React.FC = () => {
           />
           <FormControlLabel
             control={<Switch checked={darkMode} onChange={(e) => setDarkMode(e.target.checked)} />}
-            label="Dark Mode"
+            label={t('dark_mode_label')}
           />
           <TextField
-            label="Counter Update Interval (seconds)"
+            label={t('counter_interval_label')}
             type="number"
             variant="outlined"
             fullWidth
@@ -73,10 +75,10 @@ const SettingsPage: React.FC = () => {
             value={counterUpdateInterval}
             onChange={(e) => setCounterUpdateInterval(Number(e.target.value))}
             InputProps={{ inputProps: { min: 0 } }}
-            helperText="How often to refresh unread counts. Set to 0 to disable."
+            helperText={t('counter_interval_helper')}
           />
           <Button type="submit" variant="contained" color="primary" sx={{ mt: 2 }}>
-            Save Settings
+            {t('login_button')}
           </Button>
         </form>
       </Box>

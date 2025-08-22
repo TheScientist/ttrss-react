@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSwipeable } from 'react-swipeable';
 import { useTheme } from '@mui/material/styles';
 import { Box, Typography } from '@mui/material';
@@ -14,6 +15,7 @@ interface SwipeableListItemProps {
 }
 
 const SwipeableListItem: React.FC<SwipeableListItemProps> = ({ children, onSwipeLeft, onSwipeRight, disabled = false, swipeThreshold = 20 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [offsetX, setOffsetX] = useState(0);
   const itemRef = useRef<HTMLDivElement>(null);
@@ -93,10 +95,10 @@ const SwipeableListItem: React.FC<SwipeableListItemProps> = ({ children, onSwipe
       >
         <Box sx={{ display: 'flex', alignItems: 'center', opacity: offsetX > 0 ? 1 : 0 }}>
           <StarIcon sx={{ mr: 1 }} />
-          <Typography variant="body2">Toggle Star</Typography>
+          <Typography variant="body2">{t('toggle_star')}</Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', opacity: offsetX < 0 ? 1 : 0 }}>
-          <Typography variant="body2" sx={{ mr: 1 }}>Toggle Read</Typography>
+          <Typography variant="body2" sx={{ mr: 1 }}>{t('toggle_read')}</Typography>
           <CheckCircleIcon />
         </Box>
       </Box>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogActions,
@@ -23,6 +24,7 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   title,
   children,
 }) => {
+  const { t } = useTranslation();
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>{title}</DialogTitle>
@@ -30,9 +32,9 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
         <DialogContentText component="div">{children}</DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
+        <Button onClick={onClose}>{t('cancel')}</Button>
         <Button onClick={onConfirm} autoFocus>
-          Confirm
+          {t('confirm')}
         </Button>
       </DialogActions>
     </Dialog>

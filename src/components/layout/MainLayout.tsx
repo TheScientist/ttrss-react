@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AppBar, Toolbar, IconButton, Typography, Box, Drawer, Avatar } from '@mui/material';
+import { AppBar, Toolbar, IconButton, Typography, Box, Drawer, Avatar, Tooltip } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import ConfirmationDialog from '../ConfirmationDialog';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -10,6 +10,7 @@ import { useSelection } from '../../contexts/SelectionContext';
 import { useFeeds } from '../../hooks/useFeeds';
 import { useHeadlinesContext } from '../../contexts/HeadlinesContext';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const drawerWidth = 240;
 
@@ -18,6 +19,7 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isCatchupDialogOpen, setCatchupDialogOpen] = useState(false);
@@ -81,15 +83,17 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
       >
         <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { sm: 'none' } }}
-          >
-            <MenuIcon />
-          </IconButton>
+          <Tooltip title={t('open_drawer_label')}>
+            <IconButton
+              color="inherit"
+              aria-label={t('open_drawer_label') || 'open drawer'}
+              edge="start"
+              onClick={handleDrawerToggle}
+              sx={{ mr: 2, display: { sm: 'none' } }}
+            >
+              <MenuIcon />
+            </IconButton>
+          </Tooltip>
           <Box sx={{ flexGrow: 1 }}>
             {selectedFeed ? (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -124,18 +128,22 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               </Box>
             ) : (
               <Typography variant="h6" noWrap component="div">
-                Tiny Tiny RSS
+                {t('app_title')}
               </Typography>
             )}
           </Box>
           {selectedFeed && (
-            <IconButton color="inherit" onClick={() => setCatchupDialogOpen(true)} title="Mark all as read">
-              <DoneAllIcon />
-            </IconButton>
+            <Tooltip title={t('mark_all_as_read_title')}>
+              <IconButton color="inherit" onClick={() => setCatchupDialogOpen(true)}>
+                <DoneAllIcon />
+              </IconButton>
+            </Tooltip>
           )}
-          <IconButton color="inherit" onClick={() => navigate('/settings')}>
-            <SettingsIcon />
-          </IconButton>
+          <Tooltip title={t('settings_title')}>
+            <IconButton color="inherit" onClick={() => navigate('/settings')}>
+              <SettingsIcon />
+            </IconButton>
+          </Tooltip>
         </Toolbar>
       </AppBar>
       <Box
@@ -177,9 +185,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           }
           setCatchupDialogOpen(false);
         }}
-        title="Mark all as read?"
+        title={t('mark_all_as_read_dialog_title')}
       >
-        Are you sure you want to mark all articles in this feed as read? This action cannot be undone.
+        {t('mark_all_as_read_dialog_content')}
       </ConfirmationDialog>
 
       <Box
