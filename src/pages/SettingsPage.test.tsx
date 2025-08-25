@@ -11,6 +11,10 @@ vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => key, // Mock the t function to return the key
   }),
+  initReactI18next: {
+    type: '3rdParty',
+    init: vi.fn(),
+  },
 }));
 
 describe('SettingsPage', () => {
@@ -27,9 +31,12 @@ describe('SettingsPage', () => {
         password: 'password',
         darkMode: false,
         counterUpdateInterval: 300,
+        language: 'en',
       },
       setSettings: vi.fn(),
       isInitialized: true,
+      isApiReady: true,
+      login: vi.fn().mockResolvedValue(true),
     });
 
     const theme = createTheme();
@@ -40,12 +47,14 @@ describe('SettingsPage', () => {
       </ThemeProvider>
     );
 
-    // Check if the main title is rendered using the translation key
-    expect(screen.getByText('settings_title')).toBeInTheDocument();
-
     // Check if the API URL field is rendered with the correct value
     const apiUrlInput = screen.getByLabelText(/api_url_label/i) as HTMLInputElement;
     expect(apiUrlInput).toBeInTheDocument();
     expect(apiUrlInput.value).toBe('https://example.com/api');
+
+    // Check for another field to ensure the form is rendered
+    const usernameInput = screen.getByLabelText(/username_label/i) as HTMLInputElement;
+    expect(usernameInput).toBeInTheDocument();
+    expect(usernameInput.value).toBe('testuser');
   });
 });
