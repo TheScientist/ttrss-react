@@ -14,7 +14,7 @@ interface SwipeableListItemProps {
   swipeThreshold?: number; // Percentage of screen width
 }
 
-const SwipeableListItem: React.FC<SwipeableListItemProps> = ({ children, onSwipeLeft, onSwipeRight, disabled = false, swipeThreshold = 20 }) => {
+const SwipeableListItem: React.FC<SwipeableListItemProps> = ({ children, onSwipeLeft, onSwipeRight, disabled = false, swipeThreshold = 15 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
   const [offsetX, setOffsetX] = useState(0);

@@ -1,13 +1,25 @@
-import { createContext, useState, useContext, type ReactNode, useEffect, useMemo } from 'react';
+import {
+  createContext,
+  useState,
+  useContext,
+  type ReactNode,
+  useEffect,
+  useMemo,
+  useCallback,
+} from 'react';
+import i18n from '../i18n';
 import type { Settings } from '../types/settings';
 import { getSettings, saveSettings } from '../store/settings';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { GlobalStyles, CssBaseline } from '@mui/material';
+import apiService from '../api/apiService';
 
 interface SettingsContextType {
   settings: Settings | null;
   setSettings: (settings: Settings) => void;
   isInitialized: boolean;
+  isApiReady: boolean;
+  login: (settings: Settings) => Promise<boolean>;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -15,14 +27,34 @@ const SettingsContext = createContext<SettingsContextType | undefined>(undefined
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [settings, setSettingsState] = useState<Settings | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isApiReady, setIsApiReady] = useState(false);
+
+  const login = useCallback(async (loginSettings: Settings): Promise<boolean> => {
+    const success = await apiService.login(loginSettings);
+    if (success) {
+      setIsApiReady(true);
+      saveSettings(loginSettings); // Save settings on successful login
+      setSettingsState(loginSettings);
+    } else {
+      setIsApiReady(false);
+    }
+    return success;
+  }, []);
 
   useEffect(() => {
     const storedSettings = getSettings();
     if (storedSettings) {
       setSettingsState(storedSettings);
+      login(storedSettings); // Attempt to log in with stored settings
     }
     setIsInitialized(true);
-  }, []);
+  }, [login]);
+
+  useEffect(() => {
+    if (settings?.language) {
+      i18n.changeLanguage(settings.language);
+    }
+  }, [settings?.language]);
 
   const handleSetSettings = (newSettings: Settings) => {
     setSettingsState(newSettings);
@@ -42,7 +74,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     [settings?.darkMode]
   );
 
-  const value = { settings, setSettings: handleSetSettings, isInitialized };
+  const value = { settings, setSettings: handleSetSettings, isInitialized, isApiReady, login };
 
   return (
     <SettingsContext.Provider value={value}>

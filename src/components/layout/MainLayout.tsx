@@ -29,6 +29,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { treeData } = useFeeds();
   const { markFeedAsRead } = useHeadlinesContext();
 
+  React.useEffect(() => {
+    if (selection && mobileOpen) {
+      setMobileOpen(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selection]);
+
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
@@ -209,7 +216,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         }}
       >
         <Toolbar />
-        <Box sx={{ flexGrow: 1, overflowY: 'auto', p: 3 }}>
+        <Box sx={{ flexGrow: 1, overflowY: 'auto', p: 1 }}>
           <ErrorBoundary>
             {children}
           </ErrorBoundary>

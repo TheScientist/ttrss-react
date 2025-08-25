@@ -29,6 +29,7 @@ export interface ApiCounterItem {
   id: number | string; // Special feeds can have string IDs like 'vfeed--1'
   counter: number;
   kind: 'feed' | 'cat' | 'label';
+  auxcounter?: number;
 }
 
 export interface ApiFeed {

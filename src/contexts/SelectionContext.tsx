@@ -1,4 +1,4 @@
-import { createContext, useState, useContext, type ReactNode, useCallback, useMemo } from 'react';
+import { createContext, useState, useContext, type ReactNode, useCallback, useMemo, useEffect } from 'react';
 
 export interface Selection {
   id: number;
@@ -15,8 +15,34 @@ interface SelectionContextType {
 const SelectionContext = createContext<SelectionContextType | undefined>(undefined);
 
 export const SelectionProvider = ({ children }: { children: ReactNode }) => {
-    const [selection, setSelection] = useState<Selection | null>(null);
+  const [selection, setSelection] = useState<Selection | null>(() => {
+    try {
+      const item = window.localStorage.getItem('selectedFeed');
+      if (item) {
+        const parsed = JSON.parse(item);
+        if (typeof parsed === 'object' && parsed !== null && 'id' in parsed && 'isCategory' in parsed) {
+          return parsed as Selection;
+        }
+      }
+      return null;
+    } catch (error) {
+      console.log('Error reading selectedFeed from localStorage', error);
+      return null;
+    }
+  });
   const [selectedArticleId, setSelectedArticleId] = useState<number | null>(null);
+
+  useEffect(() => {
+    try {
+      if (selection) {
+        window.localStorage.setItem('selectedFeed', JSON.stringify(selection));
+      } else {
+        window.localStorage.removeItem('selectedFeed');
+      }
+    } catch (error) {
+      console.log('Error saving selectedFeed to localStorage', error);
+    }
+  }, [selection]);
 
   const handleSetSelection = useCallback((newSelection: Selection | null) => {
     setSelection(newSelection);

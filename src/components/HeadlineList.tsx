@@ -14,9 +14,17 @@ import SwipeableListItem from './SwipeableListItem';
 import type { ApiArticle } from '../api/types';
 import { findFeedInfoInTree } from '../utils/feedUtils';
 
-// Format timestamp according to browser's locale
+// Format timestamp according to browser's locale, without seconds
 const formatTimestamp = (timestamp: number): string => {
-  return new Date(timestamp * 1000).toLocaleString();
+  const date = new Date(timestamp * 1000);
+  const options: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  };
+  return date.toLocaleString(undefined, options);
 };
 
 const HeadlineList: React.FC = () => {
@@ -122,6 +130,7 @@ const HeadlineList: React.FC = () => {
       {headlines.map((headline) => {
         const feedInfo = findFeedInfoInTree(headline.feed_id, treeData);
         const isSelected = selectedArticleId === headline.id;
+        const displayTitle = headline.author ? `${headline.title} (${headline.author})` : headline.title;
 
         return (
           <ListItem
@@ -153,7 +162,7 @@ const HeadlineList: React.FC = () => {
                     }}
                   >
                     <ListItemText
-                      primary={headline.title}
+                      primary={displayTitle}
                       primaryTypographyProps={{ sx: { fontWeight: headline.unread ? 'bold' : 'normal', fontStyle: headline.marked ? 'italic' : 'normal', mb: 1 } }}
                     />
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
@@ -227,7 +236,7 @@ const HeadlineList: React.FC = () => {
                   }}
                 >
                   <ListItemText
-                    primary={headline.title}
+                    primary={displayTitle}
                     primaryTypographyProps={{ sx: { fontWeight: headline.unread ? 'bold' : 'normal', fontStyle: headline.marked ? 'italic' : 'normal', mb: 1 } }}
                   />
                   <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>

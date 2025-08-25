@@ -1,11 +1,12 @@
 {
-  "app_title": "TTRSS-React",
+  "app_title": "tt-rss React",
   "login_button": "Save Settings",
   "settings_title": "Settings",
   "api_url_label": "API URL",
   "username_label": "Username",
   "password_label": "Password",
   "dark_mode_label": "Dark Mode",
+  "language_label": "Language",
   "counter_interval_label": "Counter Update Interval (seconds)",
   "counter_interval_helper": "How often to refresh unread counts. Set to 0 to disable.",
   "toggle_star": "Toggle Star",

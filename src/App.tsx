@@ -5,6 +5,7 @@ import { CircularProgress, Box } from '@mui/material';
 
 
 import MainLayout from './components/layout/MainLayout';
+import SimpleLayout from './components/layout/SimpleLayout';
 import HeadlineList from './components/HeadlineList';
 
 
@@ -32,7 +33,7 @@ const App = () => {
         path="/"
         element={settings ? <MainPage /> : <Navigate to="/settings" replace />}
       />
-      <Route path="/settings" element={<SettingsPage />} />
+      <Route path="/settings" element={<SimpleLayout title="settings_title"><SettingsPage /></SimpleLayout>} />
     </Routes>
   );
 };

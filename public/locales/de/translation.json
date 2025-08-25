@@ -1,11 +1,12 @@
 {
-  "app_title": "TTRSS-React",
+  "app_title": "tt-rss React",
   "login_button": "Einstellungen speichern",
   "settings_title": "Einstellungen",
   "api_url_label": "API-URL",
   "username_label": "Benutzername",
   "password_label": "Passwort",
   "dark_mode_label": "Dunkles Layout",
+  "language_label": "Sprache",
   "counter_interval_label": "Zähler-Aktualisierungsintervall (Sekunden)",
   "counter_interval_helper": "Wie oft die Anzahl der ungelesenen Artikel aktualisiert werden soll. Auf 0 setzen, um zu deaktivieren.",
   "toggle_star": "Markiert Status umschalten",

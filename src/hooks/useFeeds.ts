@@ -187,6 +187,7 @@ export const useFeeds = () => {
       }
 
       setTreeData(populatedTree);
+      await refetchCounters();
     } catch (e) {
       setError('Failed to fetch feeds and categories.');
       console.error(e);
@@ -203,24 +204,32 @@ export const useFeeds = () => {
     if (!isLoggedIn) return;
     try {
       const counters = await apiService.getCounters();
-      const counterMap = new Map<string, number>();
-      counters.forEach((c: ApiCounterItem) => counterMap.set(String(c.id), c.counter));
+      const counterMap = new Map<string, Pick<ApiCounterItem, 'counter' | 'auxcounter'>>();
+      counters.forEach((c: ApiCounterItem) => {
+        const key = c.kind === 'cat' ? `cat_${c.id}` : `feed_${c.id}`;
+        counterMap.set(key, { counter: c.counter, auxcounter: c.auxcounter });
+      });
 
       setTreeData(currentTreeData => {
         const newTreeData = JSON.parse(JSON.stringify(currentTreeData));
 
         // Update category counters
         newTreeData.forEach((cat: TreeCategory) => {
-          const catKey = String(cat.id);
+          const catKey = `cat_${cat.id}`;
           if (counterMap.has(catKey)) {
-            cat.unread = counterMap.get(catKey)!;
+            cat.unread = counterMap.get(catKey)!.counter;
           }
 
           // Update feed counters within the category
           cat.feeds.forEach((feed: ApiFeed) => {
-            const feedKey = String(feed.id);
+            const feedKey = `feed_${feed.id}`;
             if (counterMap.has(feedKey)) {
-              feed.unread = counterMap.get(feedKey)!;
+              const counterData = counterMap.get(feedKey)!;
+              if ((feed.id === -1 || feed.id === -2) && counterData.auxcounter !== undefined) {
+                feed.unread = counterData.auxcounter;
+              } else {
+                feed.unread = counterData.counter;
+              }
             }
           });
         });

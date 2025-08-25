@@ -3,10 +3,12 @@ import apiService from '../api/apiService';
 import { useSelection } from '../contexts/SelectionContext.tsx';
 import { useFeedContext } from '../contexts/FeedContext.tsx';
 import type { ApiArticle } from '../api/types';
+import { useSettings } from '../contexts/SettingsContext.tsx';
 
 export const useHeadlines = () => {
   const { incrementUnreadCount, decrementUnreadCount, incrementStarredCount, decrementStarredCount, refetchCounters, incrementPublishedCount, decrementPublishedCount } = useFeedContext();
   const { selection } = useSelection();
+  const { isApiReady } = useSettings();
   const [headlines, setHeadlines] = useState<ApiArticle[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -142,7 +144,7 @@ export const useHeadlines = () => {
 
   useEffect(() => {
     const fetchHeadlines = async () => {
-      if (!selection) {
+      if (!selection || !isApiReady) {
         setHeadlines([]);
         return;
       }
@@ -165,7 +167,7 @@ export const useHeadlines = () => {
     };
 
     fetchHeadlines();
-  }, [selection]);
+  }, [selection, isApiReady]);
 
   return { headlines, isLoading, error, markArticleAsRead, markFeedAsRead, markArticleAsStarred, fetchArticleContent, markArticleAsPublished, setHeadlineUnreadStatus };
 };

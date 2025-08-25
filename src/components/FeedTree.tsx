@@ -6,7 +6,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useFeedContext } from '../contexts/FeedContext.tsx';
 import { useSelection } from '../contexts/SelectionContext.tsx';
-import { Box, CircularProgress, Typography, Avatar, Icon } from '@mui/material';
+import { Box, CircularProgress, Typography, Avatar, Icon, Badge } from '@mui/material';
 
 const FeedTree: React.FC = () => {
   const { treeData, isLoading, error } = useFeedContext();
@@ -104,7 +104,16 @@ const FeedTree: React.FC = () => {
         }}
       >
       {treeData.map((category) => (
-        <TreeItem key={`cat_${category.id}`} itemId={`cat_${category.id}`} label={`${category.title} (${category.unread})`}>
+        <TreeItem
+          key={`cat_${category.id}`}
+          itemId={`cat_${category.id}`}
+          label={
+            <Box sx={{ display: 'flex', alignItems: 'center', p: 0.5, pr: 0 }}>
+              <Typography sx={{ flexGrow: 1 }}>{category.title}</Typography>
+              <Badge badgeContent={category.unread} color="primary" sx={{ mr: 2 }} />
+            </Box>
+          }
+        >
           {category.feeds.map((feed) => {
             return (
               <TreeItem
@@ -122,7 +131,8 @@ const FeedTree: React.FC = () => {
                     ) : (
                       <Box sx={{ width: 24, height: 24, mr: 1 }} />
                     )}
-                    <Typography variant="body2">{`${feed.title} (${feed.unread})`}</Typography>
+                    <Typography variant="body2" sx={{ flexGrow: 1 }}>{feed.title}</Typography>
+                    <Badge badgeContent={feed.unread} color="primary" sx={{ mr: 2 }} />
                   </Box>
                 }
               />
