@@ -1,35 +1,63 @@
-# Keeping the Application Up-to-Date
+# Keeping Dependencies Up-to-Date
 
-Follow these simple steps to update your local installation with the latest changes from the repository.
+This document explains how to keep the project's frameworks and libraries (npm packages) up-to-date. Regularly updating dependencies is crucial for security, performance, and accessing new features.
 
-## Step 1: Fetch the Latest Code
+## Manual Updates
 
-Open your terminal, navigate to the project directory, and pull the latest changes from the main branch:
+You can update your dependencies manually using npm.
 
-```bash
-git pull origin main
-```
+### 1. Check for Outdated Packages
 
-This command fetches the latest code from the remote repository and merges it into your local branch.
-
-## Step 2: Install or Update Dependencies
-
-After pulling the latest code, it's possible that new dependencies have been added or existing ones have been updated. Run the following command to ensure your dependencies are in sync with the `package-lock.json` file:
+To see which packages have newer versions available, run the following command in your terminal:
 
 ```bash
-npm ci
+npm outdated
 ```
 
-Using `npm ci` (clean install) is recommended over `npm install` because it provides a reliable, repeatable build by installing the exact dependency versions specified in the lock file.
+This will show you the current version, the wanted version (respecting semantic versioning rules in `package.json`), and the latest available version of each outdated package.
 
-## Step 3: Rebuild the Application (Optional)
+### 2. Update Packages
 
-If you are self-hosting the application, you will need to create a new production build with the latest changes:
+To update the packages to the latest versions allowed by your `package.json` file, run:
 
 ```bash
-npm run build
+npm update
 ```
 
-This will generate an updated `dist` folder. You can then deploy the contents of this folder to your web server.
+For major version updates, you may need to install the package individually:
 
-That's it! Your application is now up-to-date.
+```bash
+npm install package-name@latest
+```
+
+After updating, it's important to run the tests to ensure that the new versions haven't introduced any breaking changes:
+
+```bash
+npm test
+```
+
+## Automated Updates with Renovate Bot
+
+Manually checking and updating dependencies can be time-consuming. A better approach is to automate the process using a tool like [Renovate Bot](https://github.com/renovatebot/renovate).
+
+### What is Renovate Bot?
+
+Renovate is a free tool that automatically detects outdated dependencies and creates pull requests (PRs) to update them. It's highly configurable and works with GitHub repositories.
+
+### How to Set It Up
+
+1.  **Install the Renovate App**: Go to the [Renovate GitHub App](https://github.com/apps/renovate) and install it on your repository.
+2.  **Create a Configuration File**: Add a `renovate.json` file to the root of your repository to configure its behavior. A simple configuration might look like this:
+
+    ```json
+    {
+      "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+      "extends": [
+        "config:base"
+      ]
+    }
+    ```
+
+3.  **Merge the Onboarding PR**: Renovate will create an initial PR to confirm it's set up correctly. Once you merge it, Renovate will start scanning your dependencies and creating PRs for updates.
+
+Using an automated tool like Renovate ensures your project stays current with minimal manual effort, allowing you to focus on development.
