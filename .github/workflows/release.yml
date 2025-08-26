@@ -12,10 +12,10 @@ jobs:
     permissions:
       contents: write
     container:
-      image: node:20-slim
+      image: node:22-slim
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install dependencies
         run: npm ci
