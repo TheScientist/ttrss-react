@@ -14,10 +14,11 @@ interface SwipeableListItemProps {
   swipeThreshold?: number; // Percentage of screen width
 }
 
-const SwipeableListItem: React.FC<SwipeableListItemProps> = ({ children, onSwipeLeft, onSwipeRight, disabled = false, swipeThreshold = 15 }) => {
+const SwipeableListItem: React.FC<SwipeableListItemProps> = ({ children, onSwipeLeft, onSwipeRight, disabled = false, swipeThreshold = 20 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
   const [offsetX, setOffsetX] = useState(0);
+  const [isSwiping, setIsSwiping] = useState(false);
   const itemRef = useRef<HTMLDivElement>(null);
   const swipedRef = useRef(false);
   const swiping = useRef(false);
@@ -32,8 +33,9 @@ const SwipeableListItem: React.FC<SwipeableListItemProps> = ({ children, onSwipe
     onSwiping: (eventData) => {
       if (disabled) return;
       if (!swipedRef.current && (eventData.dir === 'Left' || eventData.dir === 'Right')) {
-        if (Math.abs(eventData.deltaX) > 10) { // Threshold to distinguish swipe from click
+        if (Math.abs(eventData.deltaX) > 15) { // Slightly higher to avoid accidental triggers
           swiping.current = true;
+          setIsSwiping(true);
         }
         setOffsetX(eventData.deltaX);
       }
@@ -57,10 +59,15 @@ const SwipeableListItem: React.FC<SwipeableListItemProps> = ({ children, onSwipe
       setTimeout(() => {
         swiping.current = false;
         swipedRef.current = false;
+        setIsSwiping(false);
       }, 300); // Reset after transition duration
     },
     trackMouse: true,
+    trackTouch: true,
     preventScrollOnSwipe: true,
+    delta: 10,
+    rotationAngle: 30,
+    touchEventOptions: { passive: false },
   });
 
   const getBackgroundColor = () => {
@@ -75,7 +82,22 @@ const SwipeableListItem: React.FC<SwipeableListItemProps> = ({ children, onSwipe
   };
 
   return (
-    <Box sx={{ position: 'relative', overflow: 'hidden', touchAction: 'pan-y' }} onClickCapture={handleClickCapture}>
+    <Box
+      {...handlers}
+      sx={{ position: 'relative', overflow: 'hidden', touchAction: isSwiping ? 'none' : 'pan-y' }}
+      onClickCapture={handleClickCapture}
+      onTouchStart={() => {
+        swiping.current = false;
+        swipedRef.current = false;
+        setIsSwiping(false);
+      }}
+      onTouchMove={(e) => {
+        // While actively swiping horizontally, prevent vertical scrolling jank
+        if (swiping.current) {
+          e.preventDefault();
+        }
+      }}
+    >
       <Box
         sx={{
           position: 'absolute',

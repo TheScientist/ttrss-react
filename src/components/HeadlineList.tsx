@@ -148,6 +148,9 @@ const HeadlineList: React.FC = () => {
               <React.Fragment>
                 <SwipeableListItem disabled={true}>
                   <ListItemButton
+                    disableRipple
+                    disableTouchRipple
+                    component="div"
                     onClick={() => handleHeadlineClick(headline.id)}
                     sx={{
                       display: 'flex',
@@ -227,6 +230,9 @@ const HeadlineList: React.FC = () => {
                 onSwipeRight={() => markArticleAsStarred(headline.id, !headline.marked)}
               >
                 <ListItemButton
+                  disableRipple
+                  disableTouchRipple
+                  component="div"
                   onClick={() => handleHeadlineClick(headline.id)}
                   sx={{
                     display: 'flex',
