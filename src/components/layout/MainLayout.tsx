@@ -216,11 +216,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         }}
       >
         <Toolbar />
-        <Box sx={{ flexGrow: 1, overflowY: 'auto', p: 1 }}>
-          <ErrorBoundary>
-            {children}
-          </ErrorBoundary>
-        </Box>
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
       </Box>
     </Box>
   );

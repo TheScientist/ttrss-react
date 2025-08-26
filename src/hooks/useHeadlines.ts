@@ -11,6 +11,10 @@ export const useHeadlines = () => {
   const { isApiReady } = useSettings();
   const [headlines, setHeadlines] = useState<ApiArticle[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const pageSize = 20;
+  const [offset, setOffset] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   const setHeadlinePublishedStatus = useCallback((articleId: number, published: boolean) => {
@@ -142,32 +146,58 @@ export const useHeadlines = () => {
     }
   }, [headlines]);
 
-  useEffect(() => {
-    const fetchHeadlines = async () => {
-      if (!selection || !isApiReady) {
-        setHeadlines([]);
-        return;
-      }
+  const fetchInitial = useCallback(async () => {
+    if (!selection || !isApiReady) {
+      setHeadlines([]);
+      setHasMore(true);
+      setOffset(0);
+      return;
+    }
 
-      setIsLoading(true);
-      setError(null);
+    setIsLoading(true);
+    setError(null);
+    setHasMore(true);
+    setOffset(0);
 
-      try {
-        const fetchedHeadlines = await apiService.getHeadlines(
-          selection.id,
-          selection.isCategory
-        );
-        setHeadlines(fetchedHeadlines);
-      } catch (e) {
-        setError('Failed to fetch headlines.');
-        console.error(e);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchHeadlines();
+    try {
+      const fetchedHeadlines = await apiService.getHeadlines(
+        selection.id,
+        selection.isCategory,
+        { limit: pageSize, skip: 0 }
+      );
+      setHeadlines(fetchedHeadlines);
+      setHasMore(fetchedHeadlines.length === pageSize);
+      setOffset(fetchedHeadlines.length);
+    } catch (e) {
+      setError('Failed to fetch headlines.');
+      console.error(e);
+    } finally {
+      setIsLoading(false);
+    }
   }, [selection, isApiReady]);
 
-  return { headlines, isLoading, error, markArticleAsRead, markFeedAsRead, markArticleAsStarred, fetchArticleContent, markArticleAsPublished, setHeadlineUnreadStatus };
+  useEffect(() => {
+    fetchInitial();
+  }, [fetchInitial]);
+
+  const loadMore = useCallback(async () => {
+    if (!selection || !isApiReady || isLoading || isLoadingMore || !hasMore) return;
+    setIsLoadingMore(true);
+    try {
+      const more = await apiService.getHeadlines(
+        selection.id,
+        selection.isCategory,
+        { limit: pageSize, skip: offset }
+      );
+      setHeadlines(curr => [...curr, ...more]);
+      setHasMore(more.length === pageSize);
+      setOffset(prev => prev + more.length);
+    } catch (e) {
+      console.error('Failed to load more headlines', e);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [selection, isApiReady, isLoading, isLoadingMore, hasMore, offset]);
+
+  return { headlines, isLoading, isLoadingMore, hasMore, error, loadMore, markArticleAsRead, markFeedAsRead, markArticleAsStarred, fetchArticleContent, markArticleAsPublished, setHeadlineUnreadStatus };
 };

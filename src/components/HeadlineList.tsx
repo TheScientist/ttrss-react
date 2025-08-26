@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { debounce } from '@mui/material/utils';
 import { useHeadlinesContext } from '../contexts/HeadlinesContext';
@@ -13,6 +13,7 @@ import ArticleRenderer from './ArticleRenderer';
 import SwipeableListItem from './SwipeableListItem';
 import type { ApiArticle } from '../api/types';
 import { findFeedInfoInTree } from '../utils/feedUtils';
+import { useSettings } from '../contexts/SettingsContext';
 
 // Format timestamp according to browser's locale, without seconds
 const formatTimestamp = (timestamp: number): string => {
@@ -29,54 +30,162 @@ const formatTimestamp = (timestamp: number): string => {
 
 const HeadlineList: React.FC = () => {
   const { t } = useTranslation();
+  const { settings } = useSettings();
   const articleRefs = useRef<Map<number, HTMLLIElement>>(new Map());
-  const { headlines, isLoading, error, markArticleAsRead, markArticleAsStarred, fetchArticleContent, markArticleAsPublished } = useHeadlinesContext();
+  const { headlines, isLoading, isLoadingMore, hasMore, error, loadMore, markArticleAsRead, markArticleAsStarred, fetchArticleContent, markArticleAsPublished } = useHeadlinesContext();
   const { selectedArticleId, setSelectedArticleId } = useSelection();
+  // Refs to avoid reattaching scroll listeners on every state change
+  const headlinesRef = useRef(headlines);
+  const markArticleAsReadRef = useRef(markArticleAsRead);
+  const selectedArticleIdRef = useRef(selectedArticleId);
+  const isLoadingRef = useRef(isLoading);
+  const isLoadingMoreRef = useRef(isLoadingMore);
   const { treeData } = useFeeds();
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const listContainerRef = useRef<HTMLUListElement | null>(null);
+  const scrollContainerRef = useRef<HTMLElement | Window | null>(null);
+  const lastScrollTopRef = useRef<number | null>(null);
+  const scrollCleanupRef = useRef<(() => void) | null>(null);
+  const observerCleanupRef = useRef<(() => void) | null>(null);
+  const markOnScrollRef = useRef<boolean>(true);
 
-  // Scroll-to-mark-as-read logic (kept from previous implementation)
+  // Keep markOnScroll ref in sync with settings
   useEffect(() => {
-    const handleScroll = debounce(() => {
-      if (headlines.length === 0 || selectedArticleId) return;
+    markOnScrollRef.current = settings?.markOnScroll ?? true;
+  }, [settings?.markOnScroll]);
 
-      const articlesToMark = new Set<number>();
-      const articlesAboveViewport: ApiArticle[] = [];
-      const articlesInViewport: (ApiArticle & { rect: DOMRect })[] = [];
+  // Keep refs in sync
+  useEffect(() => { headlinesRef.current = headlines; }, [headlines]);
+  useEffect(() => { markArticleAsReadRef.current = markArticleAsRead; }, [markArticleAsRead]);
+  useEffect(() => { selectedArticleIdRef.current = selectedArticleId; }, [selectedArticleId]);
+  useEffect(() => { isLoadingRef.current = isLoading; }, [isLoading]);
+  useEffect(() => { isLoadingMoreRef.current = isLoadingMore; }, [isLoadingMore]);
+  const hasMoreRef = useRef(hasMore);
+  useEffect(() => { hasMoreRef.current = hasMore; }, [hasMore]);
+  const loadMoreRef = useRef(loadMore);
+  useEffect(() => { loadMoreRef.current = loadMore; }, [loadMore]);
 
-      headlines.forEach(article => {
-        const el = articleRefs.current.get(article.id);
-        if (!el) return;
-        const rect = el.getBoundingClientRect();
-        if (rect.bottom < 0) {
-          articlesAboveViewport.push(article);
-        } else if (rect.top < window.innerHeight && rect.bottom >= 0) {
-          articlesInViewport.push({ ...article, rect });
-        }
-      });
+  // Compute-and-mark function (stable via useCallback, reads from refs)
+  const computeAndMark = useCallback(() => {
+    if (!markOnScrollRef.current) return; // feature disabled
+    const headlines = headlinesRef.current;
+    if (headlines.length === 0 || isLoadingRef.current || isLoadingMoreRef.current) return;
 
-      articlesAboveViewport.forEach(article => {
-        if (article.unread) articlesToMark.add(article.id);
-      });
+    const target = scrollContainerRef.current as HTMLElement | null;
+    if (!target) return;
+    const currentTop = target.scrollTop;
+    if (lastScrollTopRef.current == null) {
+      lastScrollTopRef.current = currentTop;
+      return;
+    }
+    const isDown = currentTop > (lastScrollTopRef.current + 1);
+    lastScrollTopRef.current = currentTop;
+    if (!isDown) return;
 
-      articlesInViewport.sort((a, b) => a.rect.top - b.rect.top);
-      articlesInViewport.slice(0, 2).forEach(article => {
-        if (article.unread) articlesToMark.add(article.id);
-      });
+    const visible: (ApiArticle & { rect: DOMRect })[] = [];
+    const above: ApiArticle[] = [];
 
-      if (articlesToMark.size > 0) {
-        articlesToMark.forEach(articleId => {
-          const article = headlines.find(h => h.id === articleId);
-          if (article) markArticleAsRead(article.id, article.feed_id, true);
-        });
+    const viewportRect = target.getBoundingClientRect();
+    const containerTop = viewportRect.top;
+    const containerBottom = viewportRect.bottom;
+
+    headlines.forEach(article => {
+      const el = articleRefs.current.get(article.id);
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      if (rect.bottom < containerTop) {
+        above.push(article);
+      } else if (rect.top < containerBottom && rect.bottom >= containerTop) {
+        visible.push({ ...article, rect });
       }
-    }, 300);
+    });
 
-    window.addEventListener('scroll', handleScroll, true);
-    return () => {
-      window.removeEventListener('scroll', handleScroll, true);
-      handleScroll.clear();
-    };
-  }, [headlines, markArticleAsRead, selectedArticleId]);
+    visible.sort((a, b) => a.rect.top - b.rect.top);
+
+    const toMark = new Set<number>();
+    const selectedId = selectedArticleIdRef.current;
+    above.forEach(a => { if (a.unread && a.id !== selectedId) toMark.add(a.id); });
+    // Normal case: top 3
+    visible.slice(0, 3).forEach(v => { if (v.unread && v.id !== selectedId) toMark.add(v.id); });
+    // If we've reached bottom and there is no more to load, mark all visible
+    const atBottom = (target.scrollTop + target.clientHeight) >= (target.scrollHeight - 2);
+    if (atBottom && !hasMoreRef.current) {
+      visible.forEach(v => { if (v.unread && v.id !== selectedId) toMark.add(v.id); });
+    }
+
+    if (toMark.size > 0) {
+      const mark = markArticleAsReadRef.current;
+      toMark.forEach(articleId => {
+        const article = headlines.find(h => h.id === articleId);
+        if (article) mark(article.id, article.feed_id, true);
+      });
+    }
+  }, []);
+
+  // Debounced handler stored in ref so we can attach/detach reliably
+  const debouncedRef = useRef<ReturnType<typeof debounce> | null>(null);
+  useEffect(() => {
+    debouncedRef.current = debounce(computeAndMark, 200);
+    return () => { debouncedRef.current?.clear(); };
+  }, [computeAndMark]);
+
+  // Callback ref to attach listeners/observer when the List mounts
+  const listRefCallback = useCallback((el: HTMLUListElement | null) => {
+    // Cleanup previous bindings
+    if (scrollCleanupRef.current) { scrollCleanupRef.current(); scrollCleanupRef.current = null; }
+    if (observerCleanupRef.current) { observerCleanupRef.current(); observerCleanupRef.current = null; }
+
+    listContainerRef.current = el;
+    if (!el) return;
+
+    scrollContainerRef.current = el;
+    lastScrollTopRef.current = el.scrollTop; // initialize
+
+    if (!debouncedRef.current) {
+      // Create if not yet initialized (ref callbacks can run before effects)
+      debouncedRef.current = debounce(computeAndMark, 200);
+    }
+    const debounced = debouncedRef.current!;
+    // Attach scroll listener only if mark-on-scroll is enabled
+    if (markOnScrollRef.current) {
+      el.addEventListener('scroll', debounced, { capture: true, passive: true } as any);
+      scrollCleanupRef.current = () => el.removeEventListener('scroll', debounced, true);
+    }
+    // IntersectionObserver setup handled by a dedicated effect below
+  }, []);
+
+  // Reconfigure scroll listener when the setting toggles
+  useEffect(() => {
+    const el = listContainerRef.current;
+    if (!el) return;
+    // Remove any existing listener
+    if (scrollCleanupRef.current) { scrollCleanupRef.current(); scrollCleanupRef.current = null; }
+    if (!markOnScrollRef.current) return;
+    if (!debouncedRef.current) { debouncedRef.current = debounce(computeAndMark, 200); }
+    const debounced = debouncedRef.current!;
+    el.addEventListener('scroll', debounced, { capture: true, passive: true } as any);
+    scrollCleanupRef.current = () => el.removeEventListener('scroll', debounced, true);
+    return () => { if (scrollCleanupRef.current) { scrollCleanupRef.current(); scrollCleanupRef.current = null; } };
+  }, [settings?.markOnScroll, computeAndMark]);
+
+  // Ensure IntersectionObserver is attached when both list and sentinel are ready
+  useEffect(() => {
+    if (observerCleanupRef.current) { observerCleanupRef.current(); observerCleanupRef.current = null; }
+    const root = listContainerRef.current;
+    const sentinel = sentinelRef.current;
+    if (!root || !sentinel) return;
+    const observer = new IntersectionObserver((entries) => {
+      const first = entries[0];
+      if (first.isIntersecting && hasMoreRef.current && !isLoadingRef.current && !isLoadingMoreRef.current) {
+        loadMoreRef.current();
+      }
+    }, { root, rootMargin: '600px', threshold: 0 });
+    observer.observe(sentinel);
+    observerCleanupRef.current = () => observer.unobserve(sentinel);
+    return () => { observerCleanupRef.current?.(); };
+  }, [headlines]);
+
+  
 
   const handleHeadlineClick = (articleId: number) => {
     if (selectedArticleId === articleId) {
@@ -126,7 +235,11 @@ const HeadlineList: React.FC = () => {
 
   return (
     <React.Fragment>
-    <List disablePadding sx={{ backgroundColor: 'background.paper' }}>
+    <List
+      ref={listRefCallback}
+      disablePadding
+      sx={{ backgroundColor: 'background.paper', height: 'calc(100vh - 64px)', overflowY: 'auto' }}
+    >
       {headlines.map((headline) => {
         const feedInfo = findFeedInfoInTree(headline.feed_id, treeData);
         const isSelected = selectedArticleId === headline.id;
@@ -262,7 +375,17 @@ const HeadlineList: React.FC = () => {
           </ListItem>
         );
       })}
+      {hasMore && (
+        <ListItem disablePadding sx={{ p: 0, m: 0, height: 0, minHeight: 0 }}>
+          <Box ref={sentinelRef} sx={{ display: 'block', height: 1, width: '100%', overflow: 'hidden' }} />
+        </ListItem>
+      )}
       </List>
+      {isLoadingMore && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+          <CircularProgress size={24} />
+        </Box>
+      )}
     </React.Fragment>
   );
 };

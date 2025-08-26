@@ -22,6 +22,7 @@ const SettingsPage: React.FC = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [counterUpdateInterval, setCounterUpdateInterval] = useState(30);
   const [language, setLanguage] = useState(getInitialLanguage);
+  const [markOnScroll, setMarkOnScroll] = useState(true);
 
   useEffect(() => {
     if (settings) {
@@ -33,18 +34,20 @@ const SettingsPage: React.FC = () => {
       if (settings.language) {
         setLanguage(settings.language);
       }
+      setMarkOnScroll(settings.markOnScroll ?? true);
     }
   }, [settings]);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    setSettings({ apiUrl, username, password, darkMode, counterUpdateInterval, language });
+    setSettings({ apiUrl, username, password, darkMode, counterUpdateInterval, language, markOnScroll });
   };
 
   return (
     <form onSubmit={handleSubmit}>
       <TextField
         label={t('api_url_label')}
+        type='url'
         variant="outlined"
         fullWidth
         margin="normal"
@@ -54,6 +57,7 @@ const SettingsPage: React.FC = () => {
       />
       <TextField
         label={t('username_label')}
+        type='text'
         variant="outlined"
         fullWidth
         margin="normal"
@@ -74,6 +78,10 @@ const SettingsPage: React.FC = () => {
       <FormControlLabel
         control={<Switch checked={darkMode} onChange={(e) => setDarkMode(e.target.checked)} />}
         label={t('dark_mode_label')}
+      />
+      <FormControlLabel
+        control={<Switch checked={markOnScroll} onChange={(e) => setMarkOnScroll(e.target.checked)} />}
+        label={t('mark_on_scroll_label', { defaultValue: 'Mark on scroll' })}
       />
       <FormControl fullWidth margin="normal">
         <InputLabel id="language-select-label">{t('language_label')}</InputLabel>

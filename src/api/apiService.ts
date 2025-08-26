@@ -99,14 +99,18 @@ class ApiService {
 
   public async getHeadlines(
     feedId: number,
-    isCategory: boolean = false
+    isCategory: boolean = false,
+    options?: { limit?: number; skip?: number }
   ): Promise<ApiArticle[]> {
     const response = await this.request<ApiArticle[]>({
       op: 'getHeadlines',
       feed_id: feedId,
       is_cat: isCategory,
       view_mode: 'all_articles',
+      order_by: 'feed_dates',
       show_content: false, // Important: we don't fetch full content for list
+      ...(options?.limit != null ? { limit: options.limit } : {}),
+      ...(options?.skip != null ? { skip: options.skip } : {}),
     });
     return response.content.map((article) => ({
       ...article,

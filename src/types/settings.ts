@@ -6,4 +6,5 @@ export interface Settings {
   darkMode?: boolean;
   counterUpdateInterval?: number; // in seconds
   language?: string;
+  markOnScroll?: boolean; // if false, disable auto-mark-as-read on scroll
 }

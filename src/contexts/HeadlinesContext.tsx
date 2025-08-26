@@ -6,6 +6,8 @@ interface HeadlinesContextType {
   markArticleAsRead: (articleId: number, feedId: number, isCurrentlyUnread: boolean) => Promise<void>;
   headlines: ApiArticle[];
   isLoading: boolean;
+  isLoadingMore: boolean;
+  hasMore: boolean;
   error: string | null;
 
   markArticleAsStarred: (articleId: number, starred: boolean) => Promise<void>;
@@ -13,6 +15,7 @@ interface HeadlinesContextType {
   markFeedAsRead: (feedId: number, isCategory: boolean) => Promise<void>;
   fetchArticleContent: (articleId: number) => Promise<void>;
   setHeadlineUnreadStatus: (articleId: number, unread: boolean) => void;
+  loadMore: () => Promise<void>;
 }
 
 const HeadlinesContext = createContext<HeadlinesContextType | undefined>(
@@ -20,9 +23,9 @@ const HeadlinesContext = createContext<HeadlinesContextType | undefined>(
 );
 
 export const HeadlinesProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { headlines, isLoading, error, markArticleAsRead, markFeedAsRead, markArticleAsStarred, fetchArticleContent, markArticleAsPublished, setHeadlineUnreadStatus } = useHeadlines();
+  const { headlines, isLoading, isLoadingMore, hasMore, error, loadMore, markArticleAsRead, markFeedAsRead, markArticleAsStarred, fetchArticleContent, markArticleAsPublished, setHeadlineUnreadStatus } = useHeadlines();
 
-  const value = { headlines, isLoading, error, markArticleAsRead, markFeedAsRead, markArticleAsStarred, fetchArticleContent, markArticleAsPublished, setHeadlineUnreadStatus };
+  const value = { headlines, isLoading, isLoadingMore, hasMore, error, loadMore, markArticleAsRead, markFeedAsRead, markArticleAsStarred, fetchArticleContent, markArticleAsPublished, setHeadlineUnreadStatus };
 
   return (
     <HeadlinesContext.Provider value={value}>
