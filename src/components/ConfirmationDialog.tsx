@@ -32,8 +32,8 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
         <DialogContentText component="div">{children}</DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>{t('cancel')}</Button>
-        <Button onClick={onConfirm} autoFocus>
+        <Button variant="text" onClick={onClose}>{t('cancel')}</Button>
+        <Button variant="contained" onClick={onConfirm} autoFocus>
           {t('confirm')}
         </Button>
       </DialogActions>

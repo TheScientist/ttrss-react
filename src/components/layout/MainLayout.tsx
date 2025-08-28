@@ -11,7 +11,7 @@ import { useFeeds } from '../../hooks/useFeeds';
 import { useHeadlinesContext } from '../../contexts/HeadlinesContext';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useSettings } from '../../contexts/SettingsContext';
+// removed useSettings; theme is handled globally
 
 const drawerWidth = 240;
 
@@ -20,7 +20,7 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const { settings } = useSettings();
+  // settings no longer needed here
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -89,12 +89,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     <Box sx={{ display: 'flex', height: '100vh' }}>
       <AppBar
         position="fixed"
+        color="secondary"
         sx={{
           zIndex: (theme) => theme.zIndex.drawer + 1,
-          ...(settings?.darkMode && {
-            backgroundColor: 'primary.main',
-            color: (theme) => theme.palette.getContrastText(theme.palette.primary.main),
-          }),
         }}
       >
         <Toolbar>

@@ -3,7 +3,7 @@ import { AppBar, Toolbar, Typography, Box, Container, IconButton } from '@mui/ma
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { useSettings } from '../../contexts/SettingsContext';
+// Theme is applied globally; no need to read settings here
 
 interface SimpleLayoutProps {
   children: React.ReactNode;
@@ -13,19 +13,10 @@ interface SimpleLayoutProps {
 const SimpleLayout: React.FC<SimpleLayoutProps> = ({ children, title }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { settings } = useSettings();
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <AppBar
-        position="static"
-        sx={{
-          ...(settings?.darkMode && {
-            backgroundColor: 'primary.main',
-            color: (theme) => theme.palette.getContrastText(theme.palette.primary.main),
-          }),
-        }}
-      >
+      <AppBar position="static" color="secondary">
         <Toolbar>
           <IconButton
             edge="start"

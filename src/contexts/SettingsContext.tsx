@@ -65,7 +65,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     () =>
       createTheme({
         palette: {
-          primary: {
+          // Use MUI default primary. Move brand orange to secondary.
+          secondary: {
             main: '#FF9800',
           },
           mode: settings?.darkMode ? 'dark' : 'light',
