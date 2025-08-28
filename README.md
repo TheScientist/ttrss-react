@@ -1,4 +1,4 @@
-# TTRSS-React
+# Tiny Tiny RSS React
 
 A modern, responsive, and feature-rich client for Tiny Tiny RSS (TTRSS), built with React, TypeScript, and Material-UI.
 
