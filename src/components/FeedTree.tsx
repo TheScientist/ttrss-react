@@ -131,7 +131,7 @@ const FeedTree: React.FC = () => {
                       <Box sx={{ width: 24, height: 24, mr: 1 }} />
                     )}
                     <Typography variant="body2" sx={{ flexGrow: 1 }}>{feed.title}</Typography>
-                    <Badge badgeContent={feed.unread} color="primary" sx={{ mr: 2 }} />
+                    <Badge badgeContent={feed.unread} max={999} color="primary" sx={{ mr: 2 }} />
                   </Box>
                 }
               />

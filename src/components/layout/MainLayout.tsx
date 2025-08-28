@@ -90,6 +90,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <AppBar
         position="fixed"
         color="secondary"
+        enableColorOnDark
         sx={{
           zIndex: (theme) => theme.zIndex.drawer + 1,
         }}

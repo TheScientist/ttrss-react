@@ -16,13 +16,13 @@ const SimpleLayout: React.FC<SimpleLayoutProps> = ({ children, title }) => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <AppBar position="static" color="secondary">
+      <AppBar position="static" color="secondary" enableColorOnDark>
         <Toolbar>
           <IconButton
             edge="start"
             color="inherit"
             aria-label="back"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/', { replace: true })}
             sx={{ mr: 2 }}
           >
             <ArrowBackIcon />
