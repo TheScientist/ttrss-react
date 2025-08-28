@@ -22,11 +22,6 @@ export const useFeeds = () => {
                 const oldUnread = feed.unread;
                 feed.unread = typeof newCount === 'number' ? newCount : feed.unread - 1;
                 unreadDiff = oldUnread - feed.unread;
-
-                // Update the category count (if it's not a special category)
-                if (category.id !== -1) {
-                    category.unread = Math.max(0, category.unread - unreadDiff);
-                }
                 break; // Feed found, exit loop
             }
         }
@@ -54,9 +49,6 @@ export const useFeeds = () => {
         if (feed) {
           feed.unread += 1;
           feedFound = true;
-          if (category.id !== -1) {
-            category.unread += 1;
-          }
           break;
         }
       }
@@ -156,15 +148,10 @@ export const useFeeds = () => {
 
       let populatedTree = await Promise.all(feedPromises);
 
-      // Sort "Special" category to the top and adjust its counter
+      // Sort "Special" category to the top
       const specialCategoryIndex = populatedTree.findIndex((c: TreeCategory) => c.id === -1);
       if (specialCategoryIndex > -1) {
         const specialCategory = populatedTree.splice(specialCategoryIndex, 1)[0];
-
-        const recentlyReadFeed = specialCategory.feeds.find((f: ApiFeed) => f.id === -3);
-        if (recentlyReadFeed) {
-          specialCategory.unread = recentlyReadFeed.unread;
-        }
 
         const specialFeedIcons: { [key: number]: string } = {
           0: 'archive_outlined',    // Archived Articles
@@ -213,13 +200,7 @@ export const useFeeds = () => {
       setTreeData(currentTreeData => {
         const newTreeData = JSON.parse(JSON.stringify(currentTreeData));
 
-        // Update category counters
         newTreeData.forEach((cat: TreeCategory) => {
-          const catKey = `cat_${cat.id}`;
-          if (counterMap.has(catKey)) {
-            cat.unread = counterMap.get(catKey)!.counter;
-          }
-
           // Update feed counters within the category
           cat.feeds.forEach((feed: ApiFeed) => {
             const feedKey = `feed_${feed.id}`;

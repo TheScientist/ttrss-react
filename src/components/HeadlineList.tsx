@@ -198,6 +198,18 @@ const HeadlineList: React.FC = () => {
         // Explicitly mark as read
         markArticleAsRead(article.id, article.feed_id, true);
       }
+
+      // Smoothly scroll the selected headline to the top of the list container
+      // Use rAF to ensure DOM updates (like sticky header) are applied first
+      requestAnimationFrame(() => {
+        const container = listContainerRef.current;
+        const el = articleRefs.current.get(articleId);
+        if (container && el) {
+          // Sticky header top is 0 relative to the scroll container
+          const targetTop = Math.max(0, el.offsetTop);
+          container.scrollTo({ top: targetTop, behavior: 'smooth' });
+        }
+      });
     }
   };
 
@@ -255,45 +267,42 @@ const HeadlineList: React.FC = () => {
               else articleRefs.current.delete(headline.id);
             }}
             data-article-id={headline.id}
-            sx={{ flexDirection: 'column', alignItems: 'stretch', backgroundColor: 'inherit' }}
+            sx={{ flexDirection: 'column', alignItems: 'stretch', backgroundColor: 'inherit', overflow: 'visible' }}
           >
             {isSelected ? (
               <React.Fragment>
-                <SwipeableListItem disabled={true}>
-                  <ListItemButton
-                    disableRipple
-                    disableTouchRipple
-                    component="div"
-                    onClick={() => handleHeadlineClick(headline.id)}
-                    sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'flex-start',
-                      backgroundColor: 'background.paper',
-                      position: 'sticky',
-                      top: 64, // AppBar height
-                      zIndex: 1100, // Above other content
-                      borderBottom: 1,
-                      borderColor: 'divider',
-                    }}
-                  >
-                    <ListItemText
-                      primary={displayTitle}
-                      primaryTypographyProps={{ sx: { fontWeight: headline.unread ? 'bold' : 'normal', fontStyle: headline.marked ? 'italic' : 'normal', mb: 1 } }}
-                    />
-                    <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                      {feedInfo?.iconUrl && (
-                        <Avatar src={feedInfo.iconUrl} sx={{ width: 16, height: 16, mr: 1 }} />
-                      )}
-                      <Typography variant="caption" sx={{ flexGrow: 1 }}>
-                        {feedInfo?.title || t('unknown_feed')}
-                      </Typography>
-                      <Typography variant="caption">
-                        {formatTimestamp(headline.updated)}
-                      </Typography>
-                    </Box>
-                  </ListItemButton>
-                </SwipeableListItem>
+                <Box
+                  onClick={() => handleHeadlineClick(headline.id)}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    backgroundColor: 'background.paper',
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: theme => theme.zIndex.appBar - 1,
+                    borderBottom: 1,
+                    borderColor: 'divider',
+                    px: 2,
+                    py: 1,
+                  }}
+                >
+                  <ListItemText
+                    primary={displayTitle}
+                    primaryTypographyProps={{ sx: { fontWeight: headline.unread ? 'bold' : 'normal', fontStyle: headline.marked ? 'italic' : 'normal', mb: 1 } }}
+                  />
+                  <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                    {feedInfo?.iconUrl && (
+                      <Avatar src={feedInfo.iconUrl} sx={{ width: 16, height: 16, mr: 1 }} />
+                    )}
+                    <Typography variant="caption" sx={{ flexGrow: 1 }}>
+                      {feedInfo?.title || t('unknown_feed')}
+                    </Typography>
+                    <Typography variant="caption">
+                      {formatTimestamp(headline.updated)}
+                    </Typography>
+                  </Box>
+                </Box>
                 <Collapse in={isSelected} timeout="auto" unmountOnExit>
                   <Box sx={{ p: 2, backgroundColor: 'background.paper' }}>
                     <ArticleRenderer content={headline.content || ''} />
@@ -301,7 +310,7 @@ const HeadlineList: React.FC = () => {
                   <Toolbar disableGutters sx={{
                     position: 'sticky',
                     bottom: 0,
-                    zIndex: 1,
+                    zIndex: theme => theme.zIndex.appBar - 1,
                     backgroundColor: 'background.paper',
                     borderTop: 1,
                     borderColor: 'divider',
