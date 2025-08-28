@@ -110,7 +110,6 @@ const FeedTree: React.FC = () => {
           label={
             <Box sx={{ display: 'flex', alignItems: 'center', p: 0.5, pr: 0 }}>
               <Typography sx={{ flexGrow: 1 }}>{category.title}</Typography>
-              <Badge badgeContent={category.unread} color="primary" sx={{ mr: 2 }} />
             </Box>
           }
         >

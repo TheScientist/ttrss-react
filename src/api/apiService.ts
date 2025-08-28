@@ -14,6 +14,7 @@ class ApiService {
   private static instance: ApiService;
   private apiClient: AxiosInstance | null = null;
   private sid: string | null = null;
+  private serverRoot: string | null = null; // Base server URL without trailing 'api/'
 
   private constructor() {}
 
@@ -25,7 +26,13 @@ class ApiService {
   }
 
   public async login(settings: Settings): Promise<boolean> {
-    this.apiClient = axios.create({ baseURL: settings.apiUrl });
+    // Remember the actual server root (strip trailing 'api/' if present)
+    this.serverRoot = settings.apiUrl.replace(/api\/?$/, '');
+    // In development, use the Vite proxy by pointing axios at '/api/'
+    // In production, hit the configured absolute API URL directly
+    const isDev = typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.DEV;
+    const baseURL = isDev ? '/api/' : settings.apiUrl;
+    this.apiClient = axios.create({ baseURL });
     try {
       const response = await this.request<LoginResponse>({
         op: 'login',
@@ -148,12 +155,16 @@ class ApiService {
   }
 
   public getFeedIconUrl(feedId: number): string {
+    // Prefer the remembered real server root so icons always load from the TT-RSS host
+    if (this.serverRoot) {
+      return `${this.serverRoot}public.php?op=feed_icon&id=${feedId}`;
+    }
+    // Fallback: try to derive from axios baseURL (may be '/api/' during dev)
     if (this.apiClient?.defaults.baseURL) {
-      // Assuming baseURL is like https://example.com/tt-rss/api/, we want https://example.com/tt-rss/
       const baseUrl = this.apiClient.defaults.baseURL.replace(/api\/?$/, '');
       return `${baseUrl}public.php?op=feed_icon&id=${feedId}`;
     }
-    // Fallback for when API client is not initialized
+    // Last resort
     return `/public.php?op=feed_icon&id=${feedId}`;
   }
 }
