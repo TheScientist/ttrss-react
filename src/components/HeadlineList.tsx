@@ -8,7 +8,7 @@ import {
   List, ListItem, ListItemButton, ListItemText, CircularProgress, Typography, Box, 
   Collapse, Avatar, Toolbar, IconButton, Tooltip
 } from '@mui/material';
-import { Mail, MailOutline, Star, StarOutline, Share, Public } from '@mui/icons-material';
+import { Mail, MailOutline, Star, StarOutline, Share, Public, OpenInNew } from '@mui/icons-material';
 import ArticleRenderer from './ArticleRenderer';
 import SwipeableListItem from './SwipeableListItem';
 import type { ApiArticle } from '../api/types';
@@ -285,8 +285,20 @@ const HeadlineList: React.FC = () => {
                     borderColor: 'divider',
                     px: 2,
                     py: 1,
+                    pr: 9,
                   }}
                 >
+                  {/* Right-centered action for selected item */}
+                  <Box sx={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)' }} onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
+                    <Tooltip title={t('open_in_new_tab') || 'Open in new tab'}>
+                      <IconButton
+                        onClick={() => { window.open(headline.link, '_blank', 'noopener,noreferrer'); }}
+                        sx={{ width: 48, height: 48 }}
+                      >
+                        <OpenInNew fontSize="medium" />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
                   <ListItemText
                     primary={displayTitle}
                     primaryTypographyProps={{ sx: { fontWeight: headline.unread ? 'bold' : 'normal', fontStyle: headline.marked ? 'italic' : 'normal', mb: 1 } }}
@@ -298,9 +310,7 @@ const HeadlineList: React.FC = () => {
                     <Typography variant="caption" sx={{ flexGrow: 1 }}>
                       {feedInfo?.title || t('unknown_feed')}
                     </Typography>
-                    <Typography variant="caption">
-                      {formatTimestamp(headline.updated)}
-                    </Typography>
+                    <Typography variant="caption">{formatTimestamp(headline.updated)}</Typography>
                   </Box>
                 </Box>
                 <Collapse in={isSelected} timeout="auto" unmountOnExit>
@@ -343,6 +353,14 @@ const HeadlineList: React.FC = () => {
                         <Public />
                       </IconButton>
                     </Tooltip>
+                    <Tooltip title={t('open_in_new_tab') || 'Open in new tab'}>
+                      <IconButton
+                        onClick={(e) => { e.stopPropagation(); window.open(headline.link, '_blank', 'noopener,noreferrer'); }}
+                        sx={{ width: 48, height: 48 }}
+                      >
+                        <OpenInNew fontSize="medium" />
+                      </IconButton>
+                    </Tooltip>
                   </Toolbar>
                 </Collapse>
               </React.Fragment>
@@ -361,6 +379,8 @@ const HeadlineList: React.FC = () => {
                     flexDirection: 'column',
                     alignItems: 'flex-start',
                     backgroundColor: 'background.paper',
+                    position: 'relative',
+                    pr: 9,
                   }}
                 >
                   <ListItemText
@@ -374,9 +394,21 @@ const HeadlineList: React.FC = () => {
                     <Typography variant="caption" sx={{ flexGrow: 1 }}>
                       {feedInfo?.title || t('unknown_feed')}
                     </Typography>
-                    <Typography variant="caption">
-                      {formatTimestamp(headline.updated)}
-                    </Typography>
+                    <Typography variant="caption">{formatTimestamp(headline.updated)}</Typography>
+                  </Box>
+                  {/* Right-centered action for collapsed item */}
+                  <Box sx={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)' }} onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
+                    <Tooltip title={t('open_in_new_tab') || 'Open in new tab'}>
+                      <IconButton
+                        component="a"
+                        href={headline.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{ width: 48, height: 48 }}
+                      >
+                        <OpenInNew fontSize="medium" />
+                      </IconButton>
+                    </Tooltip>
                   </Box>
                 </ListItemButton>
               </SwipeableListItem>

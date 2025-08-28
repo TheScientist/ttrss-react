@@ -7,10 +7,11 @@ import DoneAllIcon from '@mui/icons-material/DoneAll';
 import FeedTree from '../FeedTree';
 import ErrorBoundary from '../ErrorBoundary';
 import { useSelection } from '../../contexts/SelectionContext';
-import { useFeeds } from '../../hooks/useFeeds';
+import { useFeedContext } from '../../contexts/FeedContext';
 import { useHeadlinesContext } from '../../contexts/HeadlinesContext';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { SPECIAL_CATEGORY_ID, SPECIAL_FEED_UNREAD } from '../../constants/specialFeeds';
 // removed useSettings; theme is handled globally
 
 const drawerWidth = 240;
@@ -26,7 +27,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isCatchupDialogOpen, setCatchupDialogOpen] = useState(false);
   const { selection } = useSelection();
-  const { treeData } = useFeeds();
+  const { treeData } = useFeedContext();
   const { markFeedAsRead } = useHeadlinesContext();
 
   React.useEffect(() => {
@@ -35,6 +36,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selection]);
+
+  // Update document title with unread counter prefix
+  React.useEffect(() => {
+    const baseTitle = t('app_title');
+    let unread = 0;
+    if (treeData && treeData.length > 0) {
+      const specialCat = treeData.find(c => c.id === SPECIAL_CATEGORY_ID);
+      const unreadFeed = specialCat?.feeds.find(f => f.id === SPECIAL_FEED_UNREAD);
+      unread = unreadFeed?.unread ?? 0;
+    }
+    document.title = unread > 0 ? `(${unread}) ${baseTitle}` : baseTitle;
+  }, [treeData, t]);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);

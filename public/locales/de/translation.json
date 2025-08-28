@@ -21,5 +21,6 @@
   "link_copied_to_clipboard": "Link in die Zwischenablage kopiert!",
   "unknown_feed": "Unbekannter Feed",
   "share_article": "Artikel teilen",
-  "toggle_publish": "Veröffentlicht Status umschalten"
+  "toggle_publish": "Veröffentlicht Status umschalten",
+  "open_in_new_tab": "In neuem Tab öffnen"
 }

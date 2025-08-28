@@ -21,5 +21,6 @@
   "link_copied_to_clipboard": "Link copied to clipboard!",
   "unknown_feed": "Unknown Feed",
   "share_article": "Share article",
-  "toggle_publish": "Toggle publish"
+  "toggle_publish": "Toggle publish",
+  "open_in_new_tab": "Open in new tab"
 }
