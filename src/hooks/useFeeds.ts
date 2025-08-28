@@ -1,6 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useApi } from '../contexts/ApiContext.tsx';
 import type { ApiCategory, ApiFeed, ApiCounterItem } from '../api/types.ts';
+import {
+  SPECIAL_CATEGORY_ID,
+  SPECIAL_FEED_ARCHIVED,
+  SPECIAL_FEED_STARRED,
+  SPECIAL_FEED_PUBLISHED,
+  SPECIAL_FEED_UNREAD,
+  SPECIAL_FEED_ALL,
+  SPECIAL_FEED_RECENTLY_READ,
+} from '../constants/specialFeeds';
 
 export interface TreeCategory extends ApiCategory {
   feeds: ApiFeed[];
@@ -9,6 +18,22 @@ export interface TreeCategory extends ApiCategory {
 export const useFeeds = () => {
   const { isLoggedIn, apiService } = useApi();
   const [treeData, setTreeData] = useState<TreeCategory[]>([]);
+
+  // Generic helper to adjust a special feed counter by delta (+1/-1/any)
+  const adjustSpecialCounter = useCallback((specialFeedId: number, delta: number) => {
+    setTreeData(currentTreeData => {
+      const newTreeData: TreeCategory[] = JSON.parse(JSON.stringify(currentTreeData));
+      const specialCategory = newTreeData.find((c: TreeCategory) => c.id === SPECIAL_CATEGORY_ID);
+      if (specialCategory) {
+        const specialFeed = specialCategory.feeds.find((f: ApiFeed) => f.id === specialFeedId);
+        if (specialFeed) {
+          const next = (specialFeed.unread ?? 0) + delta;
+          specialFeed.unread = Math.max(0, next);
+        }
+      }
+      return newTreeData;
+    });
+  }, [setTreeData]);
 
   const decrementUnreadCount = useCallback((feedId: number, newCount?: number) => {
     setTreeData(currentTreeData => {
@@ -26,20 +51,20 @@ export const useFeeds = () => {
             }
         }
 
-        // If a feed was updated, also update the global "Unread Articles" counter
-        if (unreadDiff > 0) {
-            const specialCategory = newTreeData.find((c: TreeCategory) => c.id === -1);
-            if (specialCategory) {
-                const unreadFeed = specialCategory.feeds.find((f: ApiFeed) => f.id === -6); // -6 is Unread Articles
-                if (unreadFeed) {
-                    unreadFeed.unread = Math.max(0, unreadFeed.unread - unreadDiff);
-                }
+        // If a feed was updated, also update the global "Unread Articles" counter within the same state update
+        if (unreadDiff > 0 && feedId !== SPECIAL_FEED_UNREAD) {
+          const specialCategory = newTreeData.find((c: TreeCategory) => c.id === SPECIAL_CATEGORY_ID);
+          if (specialCategory) {
+            const unreadSpecial = specialCategory.feeds.find((f: ApiFeed) => f.id === SPECIAL_FEED_UNREAD);
+            if (unreadSpecial) {
+              unreadSpecial.unread = Math.max(0, (unreadSpecial.unread ?? 0) - unreadDiff);
             }
+          }
         }
         
         return newTreeData;
     });
-  }, [setTreeData]);
+  }, [setTreeData, adjustSpecialCounter]);
   const incrementUnreadCount = useCallback((feedId: number) => {
     setTreeData(currentTreeData => {
       const newTreeData: TreeCategory[] = JSON.parse(JSON.stringify(currentTreeData));
@@ -54,74 +79,24 @@ export const useFeeds = () => {
       }
 
       if (feedFound) {
-        const specialCategory = newTreeData.find((c: TreeCategory) => c.id === -1);
-        if (specialCategory) {
-          const unreadFeed = specialCategory.feeds.find((f: ApiFeed) => f.id === -3); // -3 is Unread Articles
-          if (unreadFeed) {
-            unreadFeed.unread += 1;
+        // increment global unread unless we are already updating the special Unread feed itself
+        if (feedId !== SPECIAL_FEED_UNREAD) {
+          const specialCategory = newTreeData.find((c: TreeCategory) => c.id === SPECIAL_CATEGORY_ID);
+          if (specialCategory) {
+            const unreadSpecial = specialCategory.feeds.find((f: ApiFeed) => f.id === SPECIAL_FEED_UNREAD);
+            if (unreadSpecial) {
+              unreadSpecial.unread = Math.max(0, (unreadSpecial.unread ?? 0) + 1);
+            }
           }
         }
+        return newTreeData;
       }
 
       return newTreeData;
     });
-  }, [setTreeData]);
+  }, [setTreeData, adjustSpecialCounter]);
 
-  const incrementStarredCount = useCallback(() => {
-    setTreeData(currentTreeData => {
-      const newTreeData: TreeCategory[] = JSON.parse(JSON.stringify(currentTreeData));
-      const specialCategory = newTreeData.find((c: TreeCategory) => c.id === -1);
-      if (specialCategory) {
-        const starredFeed = specialCategory.feeds.find((f: ApiFeed) => f.id === -1);
-        if (starredFeed) {
-          starredFeed.unread += 1;
-        }
-      }
-      return newTreeData;
-    });
-  }, [setTreeData]);
-
-  const decrementStarredCount = useCallback(() => {
-    setTreeData(currentTreeData => {
-      const newTreeData: TreeCategory[] = JSON.parse(JSON.stringify(currentTreeData));
-      const specialCategory = newTreeData.find((c: TreeCategory) => c.id === -1);
-      if (specialCategory) {
-        const starredFeed = specialCategory.feeds.find((f: ApiFeed) => f.id === -1);
-        if (starredFeed && starredFeed.unread > 0) {
-          starredFeed.unread -= 1;
-        }
-      }
-      return newTreeData;
-    });
-  }, [setTreeData]);
-
-  const incrementPublishedCount = useCallback(() => {
-    setTreeData(currentTreeData => {
-      const newTreeData: TreeCategory[] = JSON.parse(JSON.stringify(currentTreeData));
-      const specialCategory = newTreeData.find((c: TreeCategory) => c.id === -1);
-      if (specialCategory) {
-        const publishedFeed = specialCategory.feeds.find((f: ApiFeed) => f.id === -2);
-        if (publishedFeed) {
-          publishedFeed.unread += 1;
-        }
-      }
-      return newTreeData;
-    });
-  }, [setTreeData]);
-
-  const decrementPublishedCount = useCallback(() => {
-    setTreeData(currentTreeData => {
-      const newTreeData: TreeCategory[] = JSON.parse(JSON.stringify(currentTreeData));
-      const specialCategory = newTreeData.find((c: TreeCategory) => c.id === -1);
-      if (specialCategory) {
-        const publishedFeed = specialCategory.feeds.find((f: ApiFeed) => f.id === -2);
-        if (publishedFeed && publishedFeed.unread > 0) {
-          publishedFeed.unread -= 1;
-        }
-      }
-      return newTreeData;
-    });
-  }, [setTreeData]);
+  // Starred/Published helpers have been removed in favor of calling adjustSpecialCounter directly
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -149,17 +124,17 @@ export const useFeeds = () => {
       let populatedTree = await Promise.all(feedPromises);
 
       // Sort "Special" category to the top
-      const specialCategoryIndex = populatedTree.findIndex((c: TreeCategory) => c.id === -1);
+      const specialCategoryIndex = populatedTree.findIndex((c: TreeCategory) => c.id === SPECIAL_CATEGORY_ID);
       if (specialCategoryIndex > -1) {
         const specialCategory = populatedTree.splice(specialCategoryIndex, 1)[0];
 
         const specialFeedIcons: { [key: number]: string } = {
-          0: 'archive_outlined',    // Archived Articles
-          [-1]: 'star_border',          // Starred Articles
-          [-2]: 'public',             // Published Articles
-          [-3]: 'weekend_outlined',            // Recently Read Articles (using History icon instead of WeekendOutlined)
-          [-4]: 'folder_open',         // All Articles
-          [-6]: 'history',            // Unread Articles
+          [SPECIAL_FEED_ARCHIVED]: 'archive_outlined',
+          [SPECIAL_FEED_STARRED]: 'star_border',
+          [SPECIAL_FEED_PUBLISHED]: 'public',
+          [SPECIAL_FEED_UNREAD]: 'weekend_outlined',
+          [SPECIAL_FEED_ALL]: 'folder_open',
+          [SPECIAL_FEED_RECENTLY_READ]: 'history',
         };
 
         specialCategory.feeds = specialCategory.feeds.map((feed: ApiFeed) => {
@@ -206,7 +181,7 @@ export const useFeeds = () => {
             const feedKey = `feed_${feed.id}`;
             if (counterMap.has(feedKey)) {
               const counterData = counterMap.get(feedKey)!;
-              if ((feed.id === -1 || feed.id === -2) && counterData.auxcounter !== undefined) {
+              if ((feed.id === SPECIAL_FEED_STARRED || feed.id === SPECIAL_FEED_PUBLISHED || feed.id === SPECIAL_FEED_ARCHIVED) && counterData.auxcounter !== undefined) {
                 feed.unread = counterData.auxcounter;
               } else {
                 feed.unread = counterData.counter;
@@ -222,5 +197,5 @@ export const useFeeds = () => {
     }
   }, [isLoggedIn, apiService, setTreeData]);
 
-  return { treeData, isLoading, error, fetchFeeds, refetchCounters, incrementUnreadCount, decrementUnreadCount, incrementStarredCount, decrementStarredCount, incrementPublishedCount, decrementPublishedCount };
+  return { treeData, isLoading, error, fetchFeeds, refetchCounters, incrementUnreadCount, decrementUnreadCount, adjustSpecialCounter };
 };

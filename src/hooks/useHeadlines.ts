@@ -2,11 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 import apiService from '../api/apiService';
 import { useSelection } from '../contexts/SelectionContext.tsx';
 import { useFeedContext } from '../contexts/FeedContext.tsx';
+import { SPECIAL_FEED_PUBLISHED, SPECIAL_FEED_STARRED } from '../constants/specialFeeds';
 import type { ApiArticle } from '../api/types';
 import { useSettings } from '../contexts/SettingsContext.tsx';
 
 export const useHeadlines = () => {
-  const { incrementUnreadCount, decrementUnreadCount, incrementStarredCount, decrementStarredCount, refetchCounters, incrementPublishedCount, decrementPublishedCount } = useFeedContext();
+  const { incrementUnreadCount, decrementUnreadCount, refetchCounters, adjustSpecialCounter } = useFeedContext();
   const { selection } = useSelection();
   const { isApiReady } = useSettings();
   const [headlines, setHeadlines] = useState<ApiArticle[]>([]);
@@ -88,9 +89,9 @@ export const useHeadlines = () => {
   const markArticleAsStarred = useCallback(async (articleId: number, starred: boolean) => {
     setHeadlineStarredStatus(articleId, starred);
     if (starred) {
-      incrementStarredCount();
+      adjustSpecialCounter(SPECIAL_FEED_STARRED, +1);
     } else {
-      decrementStarredCount();
+      adjustSpecialCounter(SPECIAL_FEED_STARRED, -1);
     }
 
     try {
@@ -98,20 +99,20 @@ export const useHeadlines = () => {
     } catch (e) {
       console.error(`Failed to mark article ${articleId} as starred.`, e);
       setHeadlineStarredStatus(articleId, !starred);
-       if (starred) {
-        decrementStarredCount();
+      if (starred) {
+        adjustSpecialCounter(SPECIAL_FEED_STARRED, -1);
       } else {
-        incrementStarredCount();
+        adjustSpecialCounter(SPECIAL_FEED_STARRED, +1);
       }
     }
-  }, [setHeadlineStarredStatus, incrementStarredCount, decrementStarredCount]);
+  }, [setHeadlineStarredStatus, adjustSpecialCounter]);
 
   const markArticleAsPublished = useCallback(async (articleId: number, published: boolean) => {
     setHeadlinePublishedStatus(articleId, published);
     if (published) {
-      incrementPublishedCount();
+      adjustSpecialCounter(SPECIAL_FEED_PUBLISHED, +1);
     } else {
-      decrementPublishedCount();
+      adjustSpecialCounter(SPECIAL_FEED_PUBLISHED, -1);
     }
 
     try {
@@ -121,12 +122,12 @@ export const useHeadlines = () => {
       // Revert on error
       setHeadlinePublishedStatus(articleId, !published);
       if (published) {
-        decrementPublishedCount();
+        adjustSpecialCounter(SPECIAL_FEED_PUBLISHED, -1);
       } else {
-        incrementPublishedCount();
+        adjustSpecialCounter(SPECIAL_FEED_PUBLISHED, +1);
       }
     }
-  }, [setHeadlinePublishedStatus, incrementPublishedCount, decrementPublishedCount]);
+  }, [setHeadlinePublishedStatus, adjustSpecialCounter]);
 
   const fetchArticleContent = useCallback(async (articleId: number) => {
     const existingArticle = headlines.find(h => h.id === articleId);

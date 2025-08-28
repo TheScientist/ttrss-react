@@ -10,17 +10,14 @@ interface FeedContextType {
   incrementUnreadCount: (feedId: number) => void;
   decrementUnreadCount: (feedId: number, newCount?: number) => void;
   refetchCounters: () => Promise<void>;
-  incrementStarredCount: () => void;
-  decrementStarredCount: () => void;
-  incrementPublishedCount: () => void;
-  decrementPublishedCount: () => void;
+  adjustSpecialCounter: (specialFeedId: number, delta: number) => void;
 }
 
 const FeedContext = createContext<FeedContextType | undefined>(undefined);
 
 export const FeedProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { settings } = useSettings();
-  const { treeData, isLoading, error, fetchFeeds, refetchCounters, incrementUnreadCount, decrementUnreadCount, incrementStarredCount, decrementStarredCount, incrementPublishedCount, decrementPublishedCount } = useFeeds();
+  const { treeData, isLoading, error, fetchFeeds, refetchCounters, incrementUnreadCount, decrementUnreadCount, adjustSpecialCounter } = useFeeds();
 
   useEffect(() => {
     const intervalSeconds = settings?.counterUpdateInterval ?? 300;
@@ -38,7 +35,7 @@ export const FeedProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [fetchFeeds]);
 
   return (
-    <FeedContext.Provider value={{ treeData, isLoading, error, refetchFeeds, refetchCounters, incrementUnreadCount, decrementUnreadCount, incrementStarredCount, decrementStarredCount, incrementPublishedCount, decrementPublishedCount }}>
+    <FeedContext.Provider value={{ treeData, isLoading, error, refetchFeeds, refetchCounters, incrementUnreadCount, decrementUnreadCount, adjustSpecialCounter }}>
       {children}
     </FeedContext.Provider>
   );
