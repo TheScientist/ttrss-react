@@ -1,14 +1,14 @@
 // Append coverage summary to GitHub Actions job summary without external services
 // Expects Vitest (v8 provider) to have generated coverage/coverage-summary.json
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'node:fs';
+import path from 'node:path';
 
 function main() {
   const summaryFile = path.join(process.cwd(), 'coverage', 'coverage-summary.json');
   if (!fs.existsSync(summaryFile)) {
     console.log('No coverage-summary.json found, skipping summary.');
-    process.exit(0);
+    return;
   }
   const data = JSON.parse(fs.readFileSync(summaryFile, 'utf8'));
   const total = data.total || {};
