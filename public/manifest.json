@@ -1,5 +1,5 @@
 {
-  "name": "Tiny Tiny RSS Progressive Web App",    
+  "name": "Tiny Tiny RSS Progressive Web App",
   "short_name": "tt-rss React",
   "description": "A modern, responsive client for Tiny Tiny RSS.",
   "start_url": ".",
@@ -8,19 +8,33 @@
   "theme_color": "#ffffff",
   "icons": [
     {
+      "src": "manifest-icon-192.maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "manifest-icon-192.maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "manifest-icon-512.maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "manifest-icon-512.maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
       "src": "/app-icon-144.png",
       "type": "image/png",
       "sizes": "144x144"
-    },
-    {
-      "src": "/app-icon-192.png",
-      "type": "image/png",
-      "sizes": "192x192"
-    },
-    {
-      "src": "/app-icon-512.png",
-      "type": "image/png",
-      "sizes": "512x512"
     }
   ]
 }

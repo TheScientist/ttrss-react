@@ -34,7 +34,7 @@ jobs:
 
       - name: Archive production artifacts
         run: |-
-          tar -czf release.tar.gz dist/*
+          tar -czf release.tar.gz -C dist .
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
