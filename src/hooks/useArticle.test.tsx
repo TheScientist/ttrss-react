@@ -1,6 +1,5 @@
-import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, act, rerender } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { useArticle } from './useArticle';
 
 // Mocks for contexts used by the hook

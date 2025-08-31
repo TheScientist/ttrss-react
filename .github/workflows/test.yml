@@ -47,6 +47,9 @@ jobs:
             coverage
             coverage/lcov.info
 
+      - name: Test build
+        run: npm run build
+
   tag_release:
     name: Bump version and push tag
     # Run only when manually dispatched on the default branch (or explicitly 'main')
