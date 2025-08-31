@@ -49,9 +49,18 @@ jobs:
 
   tag_release:
     name: Bump version and push tag
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    # Run only when manually dispatched on the default branch (or explicitly 'main')
+    if: >-
+      ${{ github.event_name == 'workflow_dispatch' &&
+          (github.ref_name == github.event.repository.default_branch || github.ref_name == 'main') }}
     runs-on: ubuntu-latest
     steps:
+      - name: Debug ref info
+        run: |
+          echo "event_name=${{ github.event_name }}"
+          echo "ref=${{ github.ref }}"
+          echo "ref_name=${{ github.ref_name }}"
+          echo "default_branch=${{ github.event.repository.default_branch }}"
       - name: Checkout code with full history
         uses: actions/checkout@v5
         with:
