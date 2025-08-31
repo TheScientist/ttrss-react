@@ -38,8 +38,8 @@ export default defineConfig({
       thresholds: {
         lines: 40,
         functions: 36,
-        branches: 40,
-        statements: 65,
+        branches: 65,
+        statements: 40,
       },
       exclude: [
         'node_modules/**',
