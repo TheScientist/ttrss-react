@@ -75,6 +75,17 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     [settings?.darkMode]
   );
 
+  // Keep Android status bar color (theme-color) in sync with theme
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const meta = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement | null;
+    if (!meta) return;
+    const lightColor = '#ffffff';
+    const darkColor = '#121212'; // MUI dark background
+    const current = theme.palette.mode === 'dark' ? darkColor : lightColor;
+    meta.setAttribute('content', current);
+  }, [theme]);
+
   const value = { settings, setSettings: handleSetSettings, isInitialized, isApiReady, login };
 
   return (
