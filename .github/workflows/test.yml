@@ -4,6 +4,15 @@ on:
   push:
     branches:
       - '**'
+  workflow_dispatch:
+    inputs:
+      releaseMessage:
+        description: 'Optional release commit message (uses npm default format if empty)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
 
 jobs:
   test:
@@ -37,3 +46,44 @@ jobs:
           path: |
             coverage
             coverage/lcov.info
+
+  tag_release:
+    name: Bump version and push tag
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code with full history
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies (for npm version validation)
+        run: npm ci
+
+      - name: Configure git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump patch version and create tag
+        env:
+          RELEASE_MESSAGE: ${{ github.event.inputs.releaseMessage }}
+        run: |
+          if [ -n "$RELEASE_MESSAGE" ]; then
+            npm version patch -m "$RELEASE_MESSAGE"
+          else
+            npm version patch -m "chore(release): %s"
+          fi
+
+      - name: Push commit and tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # actions/checkout sets up the token for HTTPS push already
+          git push --follow-tags
