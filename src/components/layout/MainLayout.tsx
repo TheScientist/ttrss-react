@@ -14,7 +14,8 @@ import { useTranslation } from 'react-i18next';
 import { SPECIAL_CATEGORY_ID, SPECIAL_FEED_UNREAD } from '../../constants/specialFeeds';
 // removed useSettings; theme is handled globally
 
-const drawerWidth = 240;
+// Responsive drawer widths: keep compact on small screens, wider on larger
+const drawerWidths = { sm: 240, md: 280, lg: 320 } as const;
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -174,7 +175,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       </AppBar>
       <Box
         component="nav"
-        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+        sx={{ width: { sm: drawerWidths.sm, md: drawerWidths.md, lg: drawerWidths.lg }, flexShrink: { sm: 0 } }}
         aria-label="mailbox folders"
       >
         <Drawer
@@ -186,7 +187,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           }}
           sx={{
             display: { xs: 'block', sm: 'none' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidths.sm },
           }}
         >
           {drawer}
@@ -195,7 +196,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           variant="permanent"
           sx={{
             display: { xs: 'none', sm: 'block' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            '& .MuiDrawer-paper': {
+              boxSizing: 'border-box',
+              width: { sm: drawerWidths.sm, md: drawerWidths.md, lg: drawerWidths.lg },
+            },
           }}
           open
         >
@@ -220,7 +224,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         component="main"
         sx={{
           flexGrow: 1,
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          width: {
+            sm: `calc(100% - ${drawerWidths.sm}px)`,
+            md: `calc(100% - ${drawerWidths.md}px)`,
+            lg: `calc(100% - ${drawerWidths.lg}px)`,
+          },
           display: 'flex',
           flexDirection: 'column',
           height: '100vh',
