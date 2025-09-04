@@ -79,11 +79,13 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (typeof document === 'undefined') return;
     const meta = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement | null;
-    if (!meta) return;
+    const manifestLink = document.querySelector('link[rel="manifest"]') as HTMLLinkElement | null;
+    if (!meta || !manifestLink) return;
     const lightColor = '#ffffff';
     const darkColor = '#121212'; // MUI dark background
     const current = theme.palette.mode === 'dark' ? darkColor : lightColor;
     meta.setAttribute('content', current);
+    manifestLink.setAttribute('href', theme.palette.mode === 'dark' ? '/manifest-dark.json' : '/manifest.json');
   }, [theme]);
 
   const value = { settings, setSettings: handleSetSettings, isInitialized, isApiReady, login };
