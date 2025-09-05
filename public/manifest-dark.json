@@ -5,6 +5,7 @@
   "start_url": ".",
   "background_color": "#121212",
   "display": "standalone",
+  "display_override": ["window-controls-overlay"],
   "theme_color": "#121212",
   "icons": [
     {
@@ -30,11 +31,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
-    },
-    {
-      "src": "/app-icon-144.png",
-      "type": "image/png",
-      "sizes": "144x144"
     }
   ]
 }

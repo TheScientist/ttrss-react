@@ -3,9 +3,14 @@
   <head>
     <meta charset="UTF-8">
     <link rel="icon" href="./favicon.ico">
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#ffffff">
+    <!-- Light/Dark manifests so Android splash uses matching background -->
+    <link rel="manifest" href="/manifest.json" media="(prefers-color-scheme: light)">
+    <link rel="manifest" href="/manifest-dark.json" media="(prefers-color-scheme: dark)">
+    <!-- Match status bar color to theme -->
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#121212" media="(prefers-color-scheme: dark)">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <!-- iOS PWA -->
     <link rel="apple-touch-icon" href="/apple-icon-180.png">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
