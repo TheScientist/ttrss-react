@@ -9,21 +9,29 @@ import { HeadlinesProvider } from './contexts/HeadlinesContext';
 import App from './App';
 import './index.css';
 import './i18n'; // Initialize i18next
+import { i18nReady } from './i18n';
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <SettingsProvider>
-        <ApiProvider>
-          <FeedProvider>
-                        <SelectionProvider>
-              <HeadlinesProvider>
-                <App />
-              </HeadlinesProvider>
-            </SelectionProvider>
-          </FeedProvider>
-        </ApiProvider>
-      </SettingsProvider>
-    </BrowserRouter>
-  </React.StrictMode>
-);
+const root = ReactDOM.createRoot(document.getElementById('root')!);
+
+// Optionally render a minimal placeholder while i18n loads
+root.render(<div style={{ display: 'none' }} />);
+
+i18nReady.finally(() => {
+  root.render(
+    <React.StrictMode>
+      <BrowserRouter>
+        <SettingsProvider>
+          <ApiProvider>
+            <FeedProvider>
+              <SelectionProvider>
+                <HeadlinesProvider>
+                  <App />
+                </HeadlinesProvider>
+              </SelectionProvider>
+            </FeedProvider>
+          </ApiProvider>
+        </SettingsProvider>
+      </BrowserRouter>
+    </React.StrictMode>
+  );
+});

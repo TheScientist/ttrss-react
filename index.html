@@ -9,6 +9,16 @@
     <!-- Match status bar color to theme -->
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#121212" media="(prefers-color-scheme: dark)">
+    <!-- Hint UA about supported color schemes -->
+    <meta name="color-scheme" content="light dark">
+    <!-- Critical CSS to avoid white flash between splash and app render -->
+    <style>
+      :root { color-scheme: light dark; }
+      html, body, #root { height: 100%; margin: 0; background: #ffffff; }
+      @media (prefers-color-scheme: dark) {
+        html, body, #root { background: #121212; }
+      }
+    </style>
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <!-- iOS PWA -->
     <link rel="apple-touch-icon" href="/apple-icon-180.png">
