@@ -1,6 +1,7 @@
 # Tiny Tiny RSS React
 
-A modern, responsive, and feature-rich client for Tiny Tiny RSS (TTRSS), built with React, TypeScript, and Material-UI.
+A modern, responsive, and feature-rich client for Tiny Tiny RSS (tt-RSS), built with React, TypeScript, and Material-UI.
+This project was initially completely written by AI using the Windsurf IDE.
 
 ## Key Features
 
