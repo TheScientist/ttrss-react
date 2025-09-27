@@ -64,9 +64,9 @@ const SwipeableListItem: React.FC<SwipeableListItemProps> = ({ children, onSwipe
     },
     trackMouse: true,
     trackTouch: true,
-    preventScrollOnSwipe: true,
+    preventScrollOnSwipe: false,
     delta: 10,
-    rotationAngle: 30,
+    rotationAngle: 15,
     touchEventOptions: { passive: false },
   });
 
@@ -84,7 +84,7 @@ const SwipeableListItem: React.FC<SwipeableListItemProps> = ({ children, onSwipe
   return (
     <Box
       {...handlers}
-      sx={{ position: 'relative', overflow: 'hidden', touchAction: isSwiping ? 'none' : 'pan-y' }}
+      sx={{ position: 'relative', overflow: 'hidden', touchAction: 'pan-y' }}
       onClickCapture={handleClickCapture}
       onTouchStart={() => {
         swiping.current = false;
