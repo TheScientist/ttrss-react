@@ -3,21 +3,11 @@
   <head>
     <meta charset="UTF-8">
     <link rel="icon" href="./favicon.ico">
-    <!-- Light/Dark manifests so Android splash uses matching background -->
-    <link rel="manifest" href="/manifest.json" media="(prefers-color-scheme: light)">
-    <link rel="manifest" href="/manifest-dark.json" media="(prefers-color-scheme: dark)">
-    <!-- Match status bar color to theme -->
-    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#121212" media="(prefers-color-scheme: dark)">
-    <!-- Hint UA about supported color schemes -->
-    <meta name="color-scheme" content="light dark">
-    <!-- Critical CSS to avoid white flash between splash and app render -->
+    <!-- Manifest and theme-color will be set by app config -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#000">
     <style>
-      :root { color-scheme: light dark; }
       html, body, #root { height: 100%; margin: 0; background: #ffffff; }
-      @media (prefers-color-scheme: dark) {
-        html, body, #root { background: #121212; }
-      }
     </style>
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <!-- iOS PWA -->

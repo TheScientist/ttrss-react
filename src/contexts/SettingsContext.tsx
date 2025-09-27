@@ -94,7 +94,15 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     <SettingsContext.Provider value={value}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <GlobalStyles styles={{ body: { margin: 0 } }} />
+        <GlobalStyles
+          styles={{
+            body: {
+              margin: 0,
+              backgroundColor: theme.palette.mode === 'dark' ? '#121212' : '#ffffff',
+              colorScheme: theme.palette.mode,
+            },
+          }}
+        />
         {children}
       </ThemeProvider>
     </SettingsContext.Provider>
