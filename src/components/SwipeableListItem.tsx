@@ -15,6 +15,9 @@ interface SwipeableListItemProps {
 }
 
 const SwipeableListItem: React.FC<SwipeableListItemProps> = ({ children, onSwipeLeft, onSwipeRight, disabled = false, swipeThreshold = 20 }) => {
+  // Direction lock: null = undecided, 'horizontal' or 'vertical'
+  const directionLock = useRef<null | 'horizontal' | 'vertical'>(null);
+  const startXY = useRef<{ x: number; y: number } | null>(null);
   const { t } = useTranslation();
   const theme = useTheme();
   const [offsetX, setOffsetX] = useState(0);
@@ -29,17 +32,37 @@ const SwipeableListItem: React.FC<SwipeableListItemProps> = ({ children, onSwipe
   }
 
   const handlers = useSwipeable({
+    onTouchStartOrOnMouseDown: (e) => {
+      // Type guard for TouchEvent
+      if (typeof window !== 'undefined' && window.TouchEvent && e instanceof window.TouchEvent && e.touches.length > 0) {
+        startXY.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      } else if (typeof window !== 'undefined' && window.MouseEvent && e instanceof window.MouseEvent) {
+        startXY.current = { x: e.clientX, y: e.clientY };
+      } else {
+        startXY.current = null;
+      }
+      directionLock.current = null;
+    },
     onSwiping: (eventData) => {
-      if (disabled) return;
-      if (!swipedRef.current && (eventData.dir === 'Left' || eventData.dir === 'Right')) {
-        if (Math.abs(eventData.deltaX) > 15) { // Slightly higher to avoid accidental triggers
-          swiping.current = true;
+      // Use only deltaX/deltaY for direction lock
+      if (directionLock.current === null) {
+        const dx = Math.abs(eventData.deltaX);
+        const dy = Math.abs(eventData.deltaY);
+        if (dx > 10 || dy > 10) {
+          directionLock.current = dx > dy ? 'horizontal' : 'vertical';
         }
-        setOffsetX(eventData.deltaX);
+      }
+      if (directionLock.current === 'horizontal') {
+        if (!swipedRef.current && (eventData.dir === 'Left' || eventData.dir === 'Right')) {
+          if (Math.abs(eventData.deltaX) > 30) { // Require more horizontal movement
+            swiping.current = true;
+          }
+          setOffsetX(eventData.deltaX);
+        }
       }
     },
     onSwiped: (eventData) => {
-      if (disabled) return;
+      if (directionLock.current !== 'horizontal') return; // Only handle horizontal swipes
       swipedRef.current = true;
       setOffsetX(0); // This will trigger the transition
 
@@ -52,18 +75,18 @@ const SwipeableListItem: React.FC<SwipeableListItemProps> = ({ children, onSwipe
         }
       }
 
-      // After a swipe, give a moment before resetting the swiping flag
-      // to prevent the click event from firing.
       setTimeout(() => {
         swiping.current = false;
         swipedRef.current = false;
-      }, 300); // Reset after transition duration
+        directionLock.current = null;
+        startXY.current = null;
+      }, 300);
     },
     trackMouse: true,
     trackTouch: true,
-    preventScrollOnSwipe: false,
+    preventScrollOnSwipe: false, // Let browser handle scroll
     delta: 10,
-    rotationAngle: 15,
+    rotationAngle: 15, // Stricter angle
     touchEventOptions: { passive: false },
   });
 
@@ -83,13 +106,15 @@ const SwipeableListItem: React.FC<SwipeableListItemProps> = ({ children, onSwipe
       {...handlers}
       sx={{ position: 'relative', overflow: 'hidden', touchAction: 'pan-y' }}
       onClickCapture={handleClickCapture}
-      onTouchStart={() => {
+      onTouchStart={(e) => {
         swiping.current = false;
         swipedRef.current = false;
+        directionLock.current = null;
+        startXY.current = e.touches && e.touches.length > 0 ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : null;
       }}
       onTouchMove={(e) => {
-        // While actively swiping horizontally, prevent vertical scrolling jank
-        if (swiping.current) {
+        // Only preventDefault if locked to horizontal swipe
+        if (directionLock.current === 'horizontal') {
           e.preventDefault();
         }
       }}
