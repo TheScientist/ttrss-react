@@ -232,6 +232,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           display: 'flex',
           flexDirection: 'column',
           height: '100vh',
+          backgroundColor: (theme) => theme.palette.background.default,
         }}
       >
         <Toolbar />

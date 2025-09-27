@@ -15,7 +15,7 @@ const SimpleLayout: React.FC<SimpleLayoutProps> = ({ children, title }) => {
   const navigate = useNavigate();
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+  <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: (theme) => theme.palette.background.default }}>
       <AppBar position="static" color="secondary" enableColorOnDark>
         <Toolbar>
           <IconButton
@@ -32,7 +32,7 @@ const SimpleLayout: React.FC<SimpleLayoutProps> = ({ children, title }) => {
           </Typography>
         </Toolbar>
       </AppBar>
-      <Container component="main" sx={{ flexGrow: 1, py: 3 }}>
+  <Container component="main" sx={{ flexGrow: 1, py: 3, backgroundColor: (theme) => theme.palette.background.default }}>
         {children}
       </Container>
     </Box>
