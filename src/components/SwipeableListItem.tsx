@@ -18,7 +18,6 @@ const SwipeableListItem: React.FC<SwipeableListItemProps> = ({ children, onSwipe
   const { t } = useTranslation();
   const theme = useTheme();
   const [offsetX, setOffsetX] = useState(0);
-  const [isSwiping, setIsSwiping] = useState(false);
   const itemRef = useRef<HTMLDivElement>(null);
   const swipedRef = useRef(false);
   const swiping = useRef(false);
@@ -35,7 +34,6 @@ const SwipeableListItem: React.FC<SwipeableListItemProps> = ({ children, onSwipe
       if (!swipedRef.current && (eventData.dir === 'Left' || eventData.dir === 'Right')) {
         if (Math.abs(eventData.deltaX) > 15) { // Slightly higher to avoid accidental triggers
           swiping.current = true;
-          setIsSwiping(true);
         }
         setOffsetX(eventData.deltaX);
       }
@@ -59,7 +57,6 @@ const SwipeableListItem: React.FC<SwipeableListItemProps> = ({ children, onSwipe
       setTimeout(() => {
         swiping.current = false;
         swipedRef.current = false;
-        setIsSwiping(false);
       }, 300); // Reset after transition duration
     },
     trackMouse: true,
@@ -89,7 +86,6 @@ const SwipeableListItem: React.FC<SwipeableListItemProps> = ({ children, onSwipe
       onTouchStart={() => {
         swiping.current = false;
         swipedRef.current = false;
-        setIsSwiping(false);
       }}
       onTouchMove={(e) => {
         // While actively swiping horizontally, prevent vertical scrolling jank
