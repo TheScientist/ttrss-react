@@ -9,6 +9,28 @@
     <style>
       html, body, #root { height: 100%; margin: 0; background: #ffffff; }
     </style>
+    <script>
+      // Read darkMode preference from localStorage and apply theme immediately
+      // This prevents flash of wrong background color before React loads
+      (function() {
+        try {
+          const settings = localStorage.getItem('settings');
+          if (settings) {
+            const parsed = JSON.parse(settings);
+            const isDark = parsed.darkMode !== false; // default to dark
+            const bgColor = isDark ? '#121212' : '#ffffff';
+            const isDarkMode = isDark ? 'dark' : 'light';
+            
+            document.documentElement.style.background = bgColor;
+            document.body.style.background = bgColor;
+            document.querySelector('meta[name="theme-color"]')?.setAttribute('content', bgColor);
+            document.documentElement.style.colorScheme = isDarkMode;
+          }
+        } catch (e) {
+          // Fail silently - use defaults from CSS
+        }
+      })();
+    </script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <!-- iOS PWA -->
     <link rel="apple-touch-icon" href="/apple-icon-180.png">

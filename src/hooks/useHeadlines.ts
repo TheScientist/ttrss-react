@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import apiService from '../api/apiService';
 import { useSelection } from '../contexts/SelectionContext.tsx';
 import { useFeedContext } from '../contexts/FeedContext.tsx';
-import { SPECIAL_FEED_PUBLISHED, SPECIAL_FEED_STARRED } from '../constants/specialFeeds';
+import { SPECIAL_FEED_PUBLISHED, SPECIAL_FEED_STARRED, SPECIAL_FEED_UNREAD } from '../constants/specialFeeds';
 import type { ApiArticle } from '../api/types';
 import { useSettings } from '../contexts/SettingsContext.tsx';
 
@@ -15,7 +15,6 @@ export const useHeadlines = () => {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const pageSize = 20;
-  const [offset, setOffset] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   const setHeadlinePublishedStatus = useCallback((articleId: number, published: boolean) => {
@@ -147,18 +146,35 @@ export const useHeadlines = () => {
     }
   }, [headlines]);
 
+  // Calculate the correct offset based on selected feed and current headlines
+  const calculateOffset = useCallback((headlines: ApiArticle[], selection: any): number => {
+    if (!selection) return 0;
+    
+    if (selection.id === SPECIAL_FEED_UNREAD) {
+      // For Unread feed, offset = count of unread items
+      return headlines.filter(h => h.unread).length;
+    } else if (selection.id === SPECIAL_FEED_STARRED) {
+      // For Starred feed, offset = count of marked items
+      return headlines.filter(h => h.marked).length;
+    } else if (selection.id === SPECIAL_FEED_PUBLISHED) {
+      // For Published feed, offset = count of published items
+      return headlines.filter(h => h.published).length;
+    }
+    
+    // For normal feeds, offset = total headlines count
+    return headlines.length;
+  }, []);
+
   const fetchInitial = useCallback(async () => {
     if (!selection || !isApiReady) {
       setHeadlines([]);
       setHasMore(true);
-      setOffset(0);
       return;
     }
 
     setIsLoading(true);
     setError(null);
     setHasMore(true);
-    setOffset(0);
 
     try {
       const fetchedHeadlines = await apiService.getHeadlines(
@@ -168,14 +184,13 @@ export const useHeadlines = () => {
       );
       setHeadlines(fetchedHeadlines);
       setHasMore(fetchedHeadlines.length === pageSize);
-      setOffset(fetchedHeadlines.length);
     } catch (e) {
       setError('Failed to fetch headlines.');
       console.error(e);
     } finally {
       setIsLoading(false);
     }
-  }, [selection, isApiReady]);
+  }, [selection, isApiReady, calculateOffset]);
 
   useEffect(() => {
     fetchInitial();
@@ -183,22 +198,28 @@ export const useHeadlines = () => {
 
   const loadMore = useCallback(async () => {
     if (!selection || !isApiReady || isLoading || isLoadingMore || !hasMore) return;
+    
+    // Calculate current offset based on headlines matching the current filter
+    const currentOffset = calculateOffset(headlines, selection);
+    
     setIsLoadingMore(true);
     try {
       const more = await apiService.getHeadlines(
         selection.id,
         selection.isCategory,
-        { limit: pageSize, skip: offset }
+        { limit: pageSize, skip: currentOffset }
       );
-      setHeadlines(curr => [...curr, ...more]);
+      setHeadlines(curr => {
+        const updated = [...curr, ...more];
+        return updated;
+      });
       setHasMore(more.length === pageSize);
-      setOffset(prev => prev + more.length);
     } catch (e) {
       console.error('Failed to load more headlines', e);
     } finally {
       setIsLoadingMore(false);
     }
-  }, [selection, isApiReady, isLoading, isLoadingMore, hasMore, offset]);
+  }, [selection, isApiReady, isLoading, isLoadingMore, hasMore, headlines, calculateOffset]);
 
   return { headlines, isLoading, isLoadingMore, hasMore, error, loadMore, markArticleAsRead, markFeedAsRead, markArticleAsStarred, fetchArticleContent, markArticleAsPublished, setHeadlineUnreadStatus };
 };
