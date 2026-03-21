@@ -9,7 +9,7 @@ interface ApiContextType {
   apiService: typeof apiService;
 }
 
-const ApiContext = createContext<ApiContextType | undefined>(undefined);
+export const ApiContext = createContext<ApiContextType | undefined>(undefined);
 
 export const ApiProvider = ({ children }: { children: ReactNode }) => {
   const { settings } = useSettings();
