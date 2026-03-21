@@ -13,8 +13,8 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@mui/icons-material": "^7.7.0",
-    "@mui/material": "^7.7.0",
+    "@mui/icons-material": "^7.3.2",
+    "@mui/material": "^7.3.2",
     "@mui/x-tree-view": "^8.13.0",
     "axios": "^1.11.0",
     "i18next": "^25.8.20",
