@@ -43,7 +43,7 @@ describe('SettingsContext', () => {
   });
 
   it('initializes from stored settings and logs in', async () => {
-    (getSettings as any).mockReturnValue({ apiUrl: 'https://s/api/', username: 'u', password: 'p', language: 'en', darkMode: false });
+    (getSettings as any).mockResolvedValue({ apiUrl: 'https://s/api/', username: 'u', password: 'p', language: 'en', darkMode: false });
     (apiService.login as any).mockResolvedValue(true);
 
     render(<TestConsumer />, { wrapper });
@@ -58,8 +58,9 @@ describe('SettingsContext', () => {
   });
 
   it('setSettings saves and updates language', async () => {
-    (getSettings as any).mockReturnValue(null);
+    (getSettings as any).mockResolvedValue(null);
     (apiService.login as any).mockResolvedValue(false);
+    (saveSettings as any).mockResolvedValue(undefined);
 
     render(<TestConsumer />, { wrapper });
 

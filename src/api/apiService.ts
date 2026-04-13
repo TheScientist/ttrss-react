@@ -62,11 +62,37 @@ class ApiService {
       requestData.sid = this.sid;
     }
 
-    const response = await this.apiClient.post<ApiResponse<T>>('', requestData);
-    if (response.data.status !== 0) {
-      throw new Error(`API Error: ${response.data.content}`);
+    try {
+      const response = await this.apiClient.post<ApiResponse<T>>('', requestData);
+      
+      if (response.data.status !== 0) {
+        const errorMessage = typeof response.data.content === 'string'
+          ? response.data.content
+          : typeof response.data.content === 'object'
+          ? JSON.stringify(response.data.content)
+          : String(response.data.content);
+        throw new Error(`API Error: ${errorMessage}`);
+      }
+      return response.data;
+    } catch (error) {
+      console.error('Request error details:', {
+        op: data.op,
+        error: error instanceof Error ? error.message : String(error),
+      });
+
+      // Handle axios errors
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as any;
+        if (axiosError.response?.status) {
+          throw new Error(`API Request failed: HTTP ${axiosError.response.status} - ${axiosError.response.statusText}`);
+        }
+      }
+      // Re-throw if already an Error
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error(`API Request failed: ${String(error)}`);
     }
-    return response.data;
   }
 
   public async getCategories(): Promise<ApiCategory[]> {

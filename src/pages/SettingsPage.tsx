@@ -26,9 +26,9 @@ const SettingsPage: React.FC = () => {
 
   useEffect(() => {
     if (settings) {
-      setApiUrl(settings.apiUrl);
-      setUsername(settings.username);
-      setPassword(settings.password);
+      setApiUrl(settings.apiUrl || '');
+      setUsername(settings.username || '');
+      setPassword(settings.password || '');
       setDarkMode(settings.darkMode || false);
       setCounterUpdateInterval(settings.counterUpdateInterval ?? 30);
       if (settings.language) {
@@ -38,9 +38,9 @@ const SettingsPage: React.FC = () => {
     }
   }, [settings]);
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setSettings({ apiUrl, username, password, darkMode, counterUpdateInterval, language, markOnScroll });
+    await setSettings({ apiUrl, username, password, darkMode, counterUpdateInterval, language, markOnScroll });
   };
 
   return (

@@ -33,7 +33,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     const success = await apiService.login(loginSettings);
     if (success) {
       setIsApiReady(true);
-      saveSettings(loginSettings); // Save settings on successful login
+      await saveSettings(loginSettings);
       setSettingsState(loginSettings);
     } else {
       setIsApiReady(false);
@@ -42,12 +42,15 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    const storedSettings = getSettings();
-    if (storedSettings) {
-      setSettingsState(storedSettings);
-      login(storedSettings); // Attempt to log in with stored settings
-    }
-    setIsInitialized(true);
+    const initSettings = async () => {
+      const storedSettings = await getSettings();
+      if (storedSettings) {
+        setSettingsState(storedSettings);
+        await login(storedSettings);
+      }
+      setIsInitialized(true);
+    };
+    initSettings();
   }, [login]);
 
   useEffect(() => {
@@ -56,16 +59,15 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [settings?.language]);
 
-  const handleSetSettings = (newSettings: Settings) => {
+  const handleSetSettings = async (newSettings: Settings) => {
     setSettingsState(newSettings);
-    saveSettings(newSettings);
+    await saveSettings(newSettings);
   };
 
   const theme = useMemo(
     () =>
       createTheme({
         palette: {
-          // Use MUI default primary. Move brand orange to secondary.
           secondary: {
             main: '#FF9800',
           },
@@ -75,7 +77,6 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     [settings?.darkMode]
   );
 
-  // Keep Android status bar color (theme-color) in sync with theme
   useEffect(() => {
     if (typeof document === 'undefined') return;
     const meta = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement | null;
