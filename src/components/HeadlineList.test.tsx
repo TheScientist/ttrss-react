@@ -30,7 +30,7 @@ vi.mock('../contexts/SelectionContext', () => ({
     selection: { id: 100, isCategory: false },
     setSelection: vi.fn(),
     selectedArticleId: mockSelectedArticleId,
-    setSelectedArticleId: (id: number | null) => {
+    setSelectedArticleId: (id: number) => {
       mockSelectedArticleId = id;
     },
   }),
