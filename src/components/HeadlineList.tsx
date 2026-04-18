@@ -323,7 +323,7 @@ const HeadlineList: React.FC = () => {
                   <Box sx={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)' }} onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
                     <Tooltip title={t('open_in_new_tab') || 'Open in new tab'}>
                       <IconButton
-                        onClick={() => { window.open(headline.link, '_blank', 'noopener,noreferrer'); }}
+                        onClick={() => { window.open(headline.link, '_blank', 'noopener,noreferrer'); setSelectedArticleId(null); }}
                         sx={{ width: 48, height: 48 }}
                       >
                         <OpenInNew fontSize="medium" />
@@ -386,7 +386,7 @@ const HeadlineList: React.FC = () => {
                     </Tooltip>
                     <Tooltip title={t('open_in_new_tab') || 'Open in new tab'}>
                       <IconButton
-                        onClick={(e) => { e.stopPropagation(); window.open(headline.link, '_blank', 'noopener,noreferrer'); }}
+                        onClick={(e) => { e.stopPropagation(); window.open(headline.link, '_blank', 'noopener,noreferrer'); setSelectedArticleId(null); }}
                         sx={{ width: 48, height: 48 }}
                       >
                         <OpenInNew fontSize="medium" />
