@@ -2,6 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 
+// Track selectedArticleId for dynamic mocking
+let mockSelectedArticleId = 1;
+
 // Mock contexts/hooks used by HeadlineList
 vi.mock('../contexts/HeadlinesContext', () => ({
   useHeadlinesContext: () => ({
@@ -26,8 +29,10 @@ vi.mock('../contexts/SelectionContext', () => ({
   useSelection: () => ({
     selection: { id: 100, isCategory: false },
     setSelection: vi.fn(),
-    selectedArticleId: 1,
-    setSelectedArticleId: vi.fn(),
+    selectedArticleId: mockSelectedArticleId,
+    setSelectedArticleId: (id: number | null) => {
+      mockSelectedArticleId = id;
+    },
   }),
 }));
 
@@ -54,6 +59,14 @@ import HeadlineList from './HeadlineList';
 
 describe('HeadlineList', () => {
   beforeEach(() => {
+    // Reset mock state
+    mockSelectedArticleId = 1;
+    
+    // Mock scrollTo on HTMLUListElement since test DOM doesn't have it
+    if (!HTMLUListElement.prototype.scrollTo) {
+      HTMLUListElement.prototype.scrollTo = vi.fn();
+    }
+    
     // Ensure raf executes immediately in tests
     vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb: FrameRequestCallback) => {
       cb(performance.now());
@@ -75,19 +88,24 @@ describe('HeadlineList', () => {
   });
 
   it('scrolls to exact element offset when clicking a non-selected headline', () => {
-    render(<HeadlineList />);
+    const { rerender } = render(<HeadlineList />);
 
-    const list = screen.getByRole('list');
-    // Spy scrollTo
-    (list as any).scrollTo = vi.fn();
+    const list = screen.getByRole('list') as HTMLUListElement;
+    // Set up spy to track scrollTo calls
+    const scrollToSpy = vi.spyOn(list, 'scrollTo');
 
     const second = screen.getByText('Second headline');
     const li = second.closest('li') as HTMLElement;
     // Mock offsetTop
     Object.defineProperty(li, 'offsetTop', { value: 200, configurable: true });
 
+    // Click the second headline
     fireEvent.click(second);
+    
+    // Re-render to trigger the scroll effect with updated selectedArticleId
+    rerender(<HeadlineList />);
 
-    expect((list as any).scrollTo).toHaveBeenCalledWith({ top: 200, behavior: 'smooth' });
+    // Verify scrollTo was called with the correct offset
+    expect(scrollToSpy).toHaveBeenCalledWith({ top: 200, behavior: 'smooth' });
   });
 });

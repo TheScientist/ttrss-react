@@ -48,6 +48,7 @@ const HeadlineList: React.FC = () => {
   const scrollCleanupRef = useRef<(() => void) | null>(null);
   const observerCleanupRef = useRef<(() => void) | null>(null);
   const markOnScrollRef = useRef<boolean>(true);
+  const previousArticleIdRef = useRef<number | null>(null);
 
   // Keep markOnScroll ref in sync with settings
   useEffect(() => {
@@ -65,18 +66,21 @@ const HeadlineList: React.FC = () => {
   useEffect(() => {
     if (!listContainerRef.current) return;
     
-    // Get the article to scroll to (either newly selected or the one that was just closed)
+    // Determine which article to scroll to
     let articleId: number | null = null;
     
     if (selectedArticleId) {
       // Article is being opened - scroll to it
       articleId = selectedArticleId;
-    } else {
-      // Article is being closed - scroll back to it anyway to keep it visible
-      // Use the previously selected ID from ref
-      articleId = selectedArticleIdRef.current;
-      if (!articleId) return; // No previous article, nothing to scroll to
+    } else if (previousArticleIdRef.current) {
+      // Article is being closed - scroll to the article that was just closed
+      articleId = previousArticleIdRef.current;
     }
+    
+    // Update the previous article ref for next time
+    previousArticleIdRef.current = selectedArticleId;
+    
+    if (!articleId) return; // No article to scroll to
     
     const el = articleRefs.current.get(articleId);
     if (!el) return;
