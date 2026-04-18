@@ -60,6 +60,41 @@ const HeadlineList: React.FC = () => {
   useEffect(() => { selectedArticleIdRef.current = selectedArticleId; }, [selectedArticleId]);
   useEffect(() => { isLoadingRef.current = isLoading; }, [isLoading]);
   useEffect(() => { isLoadingMoreRef.current = isLoadingMore; }, [isLoadingMore]);
+  
+  // Scroll selected article to top when selection changes
+  useEffect(() => {
+    if (!listContainerRef.current) return;
+    
+    // Get the article to scroll to (either newly selected or the one that was just closed)
+    let articleId: number | null = null;
+    
+    if (selectedArticleId) {
+      // Article is being opened - scroll to it
+      articleId = selectedArticleId;
+    } else {
+      // Article is being closed - scroll back to it anyway to keep it visible
+      // Use the previously selected ID from ref
+      articleId = selectedArticleIdRef.current;
+      if (!articleId) return; // No previous article, nothing to scroll to
+    }
+    
+    const el = articleRefs.current.get(articleId);
+    if (!el) return;
+    
+    // Use requestAnimationFrame to ensure DOM has updated (especially for Collapse animations)
+    requestAnimationFrame(() => {
+      const container = listContainerRef.current;
+      if (!container || !el) return;
+      
+      // Scroll to make the article header visible at the top
+      // offsetTop is relative to the container
+      container.scrollTo({
+        top: el.offsetTop,
+        behavior: 'smooth'
+      });
+    });
+  }, [selectedArticleId]);
+  
   const hasMoreRef = useRef(hasMore);
   useEffect(() => { hasMoreRef.current = hasMore; }, [hasMore]);
   const loadMoreRef = useRef(loadMore);
@@ -190,8 +225,10 @@ const HeadlineList: React.FC = () => {
 
   const handleHeadlineClick = (articleId: number) => {
     if (selectedArticleId === articleId) {
+      // Closing the article - just update state, let effect handle scroll
       setSelectedArticleId(null);
     } else {
+      // Opening a new article
       setSelectedArticleId(articleId);
       fetchArticleContent(articleId); // Fetch full content for the article
       const article = headlines.find(h => h.id === articleId);
@@ -199,18 +236,7 @@ const HeadlineList: React.FC = () => {
         // Explicitly mark as read
         markArticleAsRead(article.id, article.feed_id, true);
       }
-
-      // Smoothly scroll the selected headline to the top of the list container
-      // Use rAF to ensure DOM updates (like sticky header) are applied first
-      requestAnimationFrame(() => {
-        const container = listContainerRef.current;
-        const el = articleRefs.current.get(articleId);
-        if (container && el) {
-          // Sticky header top is 0 relative to the scroll container
-          const targetTop = Math.max(0, el.offsetTop);
-          container.scrollTo({ top: targetTop, behavior: 'smooth' });
-        }
-      });
+      // Scroll to article is now handled by the useEffect above
     }
   };
 

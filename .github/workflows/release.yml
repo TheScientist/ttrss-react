@@ -34,12 +34,15 @@ jobs:
 
       - name: Archive production artifacts
         run: |-
-          tar -czf release.tar.gz -C dist .
+          tar -czf release-dark.tar.gz -C dist-dark .
+          tar -czf release-light.tar.gz -C dist-light .
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ inputs.ref || github.ref_name }}
-          files: release.tar.gz
+          files: |
+            release-dark.tar.gz
+            release-light.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
