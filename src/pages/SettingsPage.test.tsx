@@ -29,7 +29,6 @@ describe('SettingsPage', () => {
         apiUrl: 'https://example.com/api',
         username: 'testuser',
         password: 'password',
-        darkMode: false,
         counterUpdateInterval: 300,
         language: 'en',
       },

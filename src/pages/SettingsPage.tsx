@@ -19,7 +19,6 @@ const SettingsPage: React.FC = () => {
   const [apiUrl, setApiUrl] = useState('/api/');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [darkMode, setDarkMode] = useState(false);
   const [counterUpdateInterval, setCounterUpdateInterval] = useState(30);
   const [language, setLanguage] = useState(getInitialLanguage);
   const [markOnScroll, setMarkOnScroll] = useState(true);
@@ -29,7 +28,6 @@ const SettingsPage: React.FC = () => {
       setApiUrl(settings.apiUrl || '');
       setUsername(settings.username || '');
       setPassword(settings.password || '');
-      setDarkMode(settings.darkMode || false);
       setCounterUpdateInterval(settings.counterUpdateInterval ?? 30);
       if (settings.language) {
         setLanguage(settings.language);
@@ -40,7 +38,7 @@ const SettingsPage: React.FC = () => {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    await setSettings({ apiUrl, username, password, darkMode, counterUpdateInterval, language, markOnScroll });
+    await setSettings({ apiUrl, username, password, counterUpdateInterval, language, markOnScroll });
   };
 
   return (
@@ -74,10 +72,6 @@ const SettingsPage: React.FC = () => {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         required
-      />
-      <FormControlLabel
-        control={<Switch checked={darkMode} onChange={(e) => setDarkMode(e.target.checked)} />}
-        label={t('dark_mode_label')}
       />
       <FormControlLabel
         control={<Switch checked={markOnScroll} onChange={(e) => setMarkOnScroll(e.target.checked)} />}

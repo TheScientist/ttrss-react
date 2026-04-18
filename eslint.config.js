@@ -6,15 +6,21 @@ import tseslint from 'typescript-eslint'
 import { globalIgnores } from 'eslint/config'
 
 export default tseslint.config([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', 'dist-dark', 'dist-light', 'coverage']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
       js.configs.recommended,
       tseslint.configs.recommended,
-      reactHooks.configs['recommended-latest'],
       reactRefresh.configs.vite,
     ],
+    plugins: {
+      'react-hooks': reactHooks,
+    },
+    rules: {
+      ...reactHooks.configs['recommended-latest'].rules,
+      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+    },
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,

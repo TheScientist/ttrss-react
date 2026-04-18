@@ -64,30 +64,21 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     await saveSettings(newSettings);
   };
 
-  const theme = useMemo(
-    () =>
-      createTheme({
-        palette: {
-          secondary: {
-            main: '#FF9800',
-          },
-          mode: settings?.darkMode ? 'dark' : 'light',
+  const theme = useMemo(() => {
+    // Detect theme from document's color-scheme
+    // This matches what's baked into the HTML at build time
+    const isDark = document.documentElement.style.colorScheme === 'dark' ||
+                   getComputedStyle(document.documentElement).colorScheme === 'dark';
+    
+    return createTheme({
+      palette: {
+        secondary: {
+          main: '#FF9800',
         },
-      }),
-    [settings?.darkMode]
-  );
-
-  useEffect(() => {
-    if (typeof document === 'undefined') return;
-    const meta = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement | null;
-    const manifestLink = document.querySelector('link[rel="manifest"]') as HTMLLinkElement | null;
-    if (!meta || !manifestLink) return;
-    const lightColor = '#ffffff';
-    const darkColor = '#121212'; // MUI dark background
-    const current = theme.palette.mode === 'dark' ? darkColor : lightColor;
-    meta.setAttribute('content', current);
-    manifestLink.setAttribute('href', theme.palette.mode === 'dark' ? '/manifest-dark.json' : '/manifest.json');
-  }, [theme]);
+        mode: isDark ? 'dark' : 'light',
+      },
+    });
+  }, []);
 
   const value = { settings, setSettings: handleSetSettings, isInitialized, isApiReady, login };
 

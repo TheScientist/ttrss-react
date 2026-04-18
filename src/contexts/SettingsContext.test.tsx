@@ -26,7 +26,7 @@ const TestConsumer = () => {
       <div>initialized:{String(isInitialized)}</div>
       <div>apiReady:{String(isApiReady)}</div>
       <div>lang:{settings?.language ?? ''}</div>
-      <button onClick={() => setSettings({ apiUrl: 'https://h/api/', username: 'u', password: 'p', language: 'de', darkMode: true })}>
+      <button onClick={() => setSettings({ apiUrl: 'https://h/api/', username: 'u', password: 'p', language: 'de' })}>
         set
       </button>
     </div>

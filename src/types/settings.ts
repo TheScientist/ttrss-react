@@ -3,7 +3,6 @@ export interface Settings {
   username: string;
   password?: string;
   serverUrl?: string; // Optional: The base URL of the TT-RSS instance, e.g., https://your.ttrss.host
-  darkMode?: boolean;
   counterUpdateInterval?: number; // in seconds
   language?: string;
   markOnScroll?: boolean; // if false, disable auto-mark-as-read on scroll
