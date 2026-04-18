@@ -23,5 +23,22 @@
   "unknown_feed": "Unknown Feed",
   "share_article": "Share article",
   "toggle_publish": "Toggle publish",
-  "open_in_new_tab": "Open in new tab"
+  "open_in_new_tab": "Open in new tab",
+  "hotkey_next_article": "Next Article",
+  "hotkey_prev_article": "Previous Article",
+  "hotkey_toggle_starred": "Toggle Starred (when article selected)",
+  "hotkey_toggle_unread": "Toggle Unread (when article selected)",
+  "hotkey_open_in_new_tab": "Open in New Tab (when article selected)",
+  "hotkey_mark_all_as_read": "Mark All as Read (when article selected)",
+  "hotkey_close_article": "Close Article (when article selected)",
+  "hotkey_show_help": "Show Hotkey Help",
+  "hotkey_reference_title": "Hotkey Reference",
+  "hotkey_reference_navigation": "Navigation",
+  "hotkey_reference_actions": "Article Actions",
+  "hotkey_reference_help": "Help",
+  "hotkey_reference_key": "Key",
+  "hotkey_reference_action": "Action",
+  "hotkey_reference_close_button": "Close",
+  "keyboard_shortcuts_label": "Keyboard Shortcuts",
+  "keyboard_shortcuts_hint": "Press {{key}} to view all available hotkeys while browsing articles."
 }

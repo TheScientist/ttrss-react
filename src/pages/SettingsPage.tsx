@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import { useSettings } from '../contexts/SettingsContext';
-import { TextField, Button, Switch, FormControlLabel, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { TextField, Button, Switch, FormControlLabel, Select, MenuItem, FormControl, InputLabel, Box, Typography, Paper } from '@mui/material';
+import { HelpOutline } from '@mui/icons-material';
 
 const getInitialLanguage = () => {
   const browserLang = navigator.language.split('-')[0];
@@ -101,6 +102,19 @@ const SettingsPage: React.FC = () => {
         InputProps={{ inputProps: { min: 0 } }}
         helperText={t('counter_interval_helper')}
       />
+      <Paper sx={{ p: 2, mt: 3, mb: 2, backgroundColor: 'action.hover' }}>
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+          <HelpOutline sx={{ mt: 0.5, flexShrink: 0 }} />
+          <Box>
+            <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>
+              {t('keyboard_shortcuts_label')}
+            </Typography>
+            <Typography variant="body2">
+              {t('keyboard_shortcuts_hint', { key: '?' })}
+            </Typography>
+          </Box>
+        </Box>
+      </Paper>
       <Button type="submit" variant="contained" color="primary" sx={{ mt: 2 }}>
         {t('login_button')}
       </Button>

@@ -23,5 +23,22 @@
   "unknown_feed": "Unbekannter Feed",
   "share_article": "Artikel teilen",
   "toggle_publish": "Veröffentlicht Status umschalten",
-  "open_in_new_tab": "In neuem Tab öffnen"
+  "open_in_new_tab": "In neuem Tab öffnen",
+  "hotkey_next_article": "Nächster Artikel",
+  "hotkey_prev_article": "Vorheriger Artikel",
+  "hotkey_toggle_starred": "Markiert Status umschalten (wenn Artikel ausgewählt)",
+  "hotkey_toggle_unread": "Gelesen Status umschalten (wenn Artikel ausgewählt)",
+  "hotkey_open_in_new_tab": "In neuem Tab öffnen (wenn Artikel ausgewählt)",
+  "hotkey_mark_all_as_read": "Alle als gelesen markieren (wenn Artikel ausgewählt)",
+  "hotkey_close_article": "Artikel schließen (wenn Artikel ausgewählt)",
+  "hotkey_show_help": "Tastenkombinationen anzeigen",
+  "hotkey_reference_title": "Tastenkombinationen",
+  "hotkey_reference_navigation": "Navigation",
+  "hotkey_reference_actions": "Artikel-Aktionen",
+  "hotkey_reference_help": "Hilfe",
+  "hotkey_reference_key": "Taste",
+  "hotkey_reference_action": "Aktion",
+  "hotkey_reference_close_button": "Schließen",
+  "keyboard_shortcuts_label": "Tastaturkürzel",
+  "keyboard_shortcuts_hint": "Drücken Sie {{key}}, um alle verfügbaren Tastaturkürzel beim Durchsuchen von Artikeln anzuzeigen."
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { debounce } from '@mui/material/utils';
 import { useHeadlinesContext } from '../contexts/HeadlinesContext';
@@ -10,10 +10,12 @@ import {
 } from '@mui/material';
 import { Mail, MailOutline, Star, StarOutline, Share, Public, OpenInNew } from '@mui/icons-material';
 import ArticleRenderer from './ArticleRenderer';
+import ConfirmationDialog from './ConfirmationDialog';
 import SwipeableListItem from './SwipeableListItem';
 import type { ApiArticle } from '../api/types';
 import { findFeedInfoInTree } from '../utils/feedUtils';
 import { useSettings } from '../contexts/SettingsContext';
+import { HOTKEYS } from '../constants/hotkeys';
 
 // Format timestamp according to browser's locale, without seconds
 const formatTimestamp = (timestamp: number): string => {
@@ -31,12 +33,16 @@ const formatTimestamp = (timestamp: number): string => {
 const HeadlineList: React.FC = () => {
   const { t } = useTranslation();
   const { settings } = useSettings();
+  const [isMarkAllDialogOpen, setIsMarkAllDialogOpen] = useState(false);
   const articleRefs = useRef<Map<number, HTMLLIElement>>(new Map());
-  const { headlines, isLoading, isLoadingMore, hasMore, error, loadMore, markArticleAsRead, markArticleAsStarred, fetchArticleContent, markArticleAsPublished } = useHeadlinesContext();
-  const { selectedArticleId, setSelectedArticleId } = useSelection();
+  const { headlines, isLoading, isLoadingMore, hasMore, error, loadMore, markArticleAsRead, markArticleAsStarred, fetchArticleContent, markArticleAsPublished, markFeedAsRead } = useHeadlinesContext();
+  const { selectedArticleId, setSelectedArticleId, selection } = useSelection();
   // Refs to avoid reattaching scroll listeners on every state change
   const headlinesRef = useRef(headlines);
   const markArticleAsReadRef = useRef(markArticleAsRead);
+  const markArticleAsStarredRef = useRef(markArticleAsStarred);
+  const markFeedAsReadRef = useRef(markFeedAsRead);
+  const fetchArticleContentRef = useRef(fetchArticleContent);
   const selectedArticleIdRef = useRef(selectedArticleId);
   const isLoadingRef = useRef(isLoading);
   const isLoadingMoreRef = useRef(isLoadingMore);
@@ -49,6 +55,7 @@ const HeadlineList: React.FC = () => {
   const observerCleanupRef = useRef<(() => void) | null>(null);
   const markOnScrollRef = useRef<boolean>(true);
   const previousArticleIdRef = useRef<number | null>(null);
+  const selectionRef = useRef(selection);
 
   // Keep markOnScroll ref in sync with settings
   useEffect(() => {
@@ -58,9 +65,13 @@ const HeadlineList: React.FC = () => {
   // Keep refs in sync
   useEffect(() => { headlinesRef.current = headlines; }, [headlines]);
   useEffect(() => { markArticleAsReadRef.current = markArticleAsRead; }, [markArticleAsRead]);
+  useEffect(() => { markArticleAsStarredRef.current = markArticleAsStarred; }, [markArticleAsStarred]);
+  useEffect(() => { markFeedAsReadRef.current = markFeedAsRead; }, [markFeedAsRead]);
+  useEffect(() => { fetchArticleContentRef.current = fetchArticleContent; }, [fetchArticleContent]);
   useEffect(() => { selectedArticleIdRef.current = selectedArticleId; }, [selectedArticleId]);
   useEffect(() => { isLoadingRef.current = isLoading; }, [isLoading]);
   useEffect(() => { isLoadingMoreRef.current = isLoadingMore; }, [isLoadingMore]);
+  useEffect(() => { selectionRef.current = selection; }, [selection]);
   
   // Scroll selected article to top when selection changes
   useEffect(() => {
@@ -103,6 +114,80 @@ const HeadlineList: React.FC = () => {
   useEffect(() => { hasMoreRef.current = hasMore; }, [hasMore]);
   const loadMoreRef = useRef(loadMore);
   useEffect(() => { loadMoreRef.current = loadMore; }, [loadMore]);
+
+  // Hotkey listener
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is typing in an input or contenteditable element
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.contentEditable === 'true') {
+        return;
+      }
+
+      const key = e.key.toLowerCase();
+      const currentIndex = headlinesRef.current.findIndex(h => h.id === selectedArticleIdRef.current);
+
+      if (key === HOTKEYS.NEXT_ARTICLE_1 || key === HOTKEYS.NEXT_ARTICLE_2) {
+        e.preventDefault();
+        // Go to next article
+        if (currentIndex >= 0 && currentIndex < headlinesRef.current.length - 1) {
+          const nextArticle = headlinesRef.current[currentIndex + 1];
+          setSelectedArticleId(nextArticle.id);
+          fetchArticleContentRef.current(nextArticle.id);
+          // Mark as read if unread
+          if (nextArticle.unread) {
+            markArticleAsReadRef.current(nextArticle.id, nextArticle.feed_id, true);
+          }
+        } else if (currentIndex === -1 && headlinesRef.current.length > 0) {
+          const firstArticle = headlinesRef.current[0];
+          setSelectedArticleId(firstArticle.id);
+          fetchArticleContentRef.current(firstArticle.id);
+          // Mark as read if unread
+          if (firstArticle.unread) {
+            markArticleAsReadRef.current(firstArticle.id, firstArticle.feed_id, true);
+          }
+        }
+      } else if (key === HOTKEYS.PREV_ARTICLE_1 || key === HOTKEYS.PREV_ARTICLE_2) {
+        e.preventDefault();
+        // Go to previous article
+        if (currentIndex > 0) {
+          const prevArticle = headlinesRef.current[currentIndex - 1];
+          setSelectedArticleId(prevArticle.id);
+          fetchArticleContentRef.current(prevArticle.id);
+          // Mark as read if unread
+          if (prevArticle.unread) {
+            markArticleAsReadRef.current(prevArticle.id, prevArticle.feed_id, true);
+          }
+        }
+      } else if (key === HOTKEYS.MARK_ALL_AS_READ) {
+        e.preventDefault();
+        // Show confirmation dialog for marking all as read
+        setIsMarkAllDialogOpen(true);
+      } else if (selectedArticleIdRef.current !== null) {
+        // Article actions (only when an article is selected)
+        const article = headlinesRef.current.find(h => h.id === selectedArticleIdRef.current);
+        if (!article) return;
+
+        if (key === HOTKEYS.TOGGLE_STARRED) {
+          e.preventDefault();
+          markArticleAsStarredRef.current(article.id, !article.marked);
+        } else if (key === HOTKEYS.TOGGLE_UNREAD) {
+          e.preventDefault();
+          markArticleAsReadRef.current(article.id, article.feed_id, article.unread);
+        } else if (key === HOTKEYS.OPEN_IN_NEW_TAB) {
+          e.preventDefault();
+          window.open(article.link, '_blank', 'noopener,noreferrer');
+          setSelectedArticleId(null);
+        } else if (key === HOTKEYS.CLOSE_ARTICLE) {
+          e.preventDefault();
+          setSelectedArticleId(null);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [setSelectedArticleId, markArticleAsStarred, markArticleAsRead, fetchArticleContent]);
 
   // Compute-and-mark function (stable via useCallback, reads from refs)
   const computeAndMark = useCallback(() => {
@@ -457,7 +542,20 @@ const HeadlineList: React.FC = () => {
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
           <CircularProgress size={24} />
         </Box>
-      )}
+      )}  
+      <ConfirmationDialog
+        open={isMarkAllDialogOpen}
+        onClose={() => setIsMarkAllDialogOpen(false)}
+        onConfirm={() => {
+          if (selection) {
+            markFeedAsRead(selection.id, selection.isCategory);
+          }
+          setIsMarkAllDialogOpen(false);
+        }}
+        title={t('mark_all_as_read_dialog_title')}
+      >
+        {t('mark_all_as_read_dialog_content')}
+      </ConfirmationDialog>
     </React.Fragment>
   );
 };
