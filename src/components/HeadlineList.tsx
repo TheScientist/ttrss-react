@@ -127,7 +127,8 @@ const HeadlineList: React.FC = () => {
   useEffect(() => {
     debouncedRef.current = debounce(computeAndMark, 200);
     return () => { debouncedRef.current?.clear(); };
-  }, [computeAndMark]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Callback ref to attach listeners/observer when the List mounts
   const listRefCallback = useCallback((el: HTMLUListElement | null) => {

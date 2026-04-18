@@ -21,16 +21,12 @@ const SwipeableListItem: React.FC<SwipeableListItemProps> = ({ children, onSwipe
   const { t } = useTranslation();
   const theme = useTheme();
   const [offsetX, setOffsetX] = useState(0);
+  const [hasTransition, setHasTransition] = useState(false);
   const itemRef = useRef<HTMLDivElement>(null);
   const swipedRef = useRef(false);
   const swiping = useRef(false);
 
-  if (disabled) {
-    // Return a simple div wrapper to maintain DOM structure without swipe functionality
-    // or styles that interfere with sticky positioning.
-    return <div>{children}</div>;
-  }
-
+  // Always call the hook, but handlers will be controlled by disabled prop
   const handlers = useSwipeable({
     onTouchStartOrOnMouseDown: (e) => {
       // Type guard for TouchEvent
@@ -64,6 +60,7 @@ const SwipeableListItem: React.FC<SwipeableListItemProps> = ({ children, onSwipe
     onSwiped: (eventData) => {
       if (directionLock.current !== 'horizontal') return; // Only handle horizontal swipes
       swipedRef.current = true;
+      setHasTransition(true);
       setOffsetX(0); // This will trigger the transition
 
       const threshold = (window.innerWidth * swipeThreshold) / 100;
@@ -78,6 +75,7 @@ const SwipeableListItem: React.FC<SwipeableListItemProps> = ({ children, onSwipe
       setTimeout(() => {
         swiping.current = false;
         swipedRef.current = false;
+        setHasTransition(false);
         directionLock.current = null;
         startXY.current = null;
       }, 300);
@@ -89,6 +87,11 @@ const SwipeableListItem: React.FC<SwipeableListItemProps> = ({ children, onSwipe
     rotationAngle: 15, // Stricter angle
     touchEventOptions: { passive: false },
   });
+
+  if (disabled) {
+    // Return a simple div wrapper to maintain DOM structure without swipe functionality
+    return <div>{children}</div>;
+  }
 
   const getBackgroundColor = () => {
     if (offsetX !== 0) return theme.palette.primary.main;
@@ -153,7 +156,7 @@ const SwipeableListItem: React.FC<SwipeableListItemProps> = ({ children, onSwipe
           position: 'relative',
           zIndex: 1,
           backgroundColor: theme.palette.background.paper,
-          transition: swipedRef.current ? 'transform 0.3s ease-out' : 'none',
+          transition: hasTransition ? 'transform 0.3s ease-out' : 'none',
         }}
       >
         {children}

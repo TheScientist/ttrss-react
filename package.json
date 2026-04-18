@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:dark": "cross-env BUILD_MODE=dark vite",
     "build": "tsc -b && npm run build:dark && npm run build:light",
     "build:dark": "cross-env BUILD_MODE=dark vite build",
     "build:light": "cross-env BUILD_MODE=light vite build",

@@ -18,29 +18,29 @@ export const ApiProvider = ({ children }: { children: ReactNode }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!settings) {
+      setIsLoading(false);
+      return;
+    }
+
     const login = async () => {
-      if (settings) {
-        setIsLoading(true);
-        setError(null);
-        try {
-          const success = await apiService.login(settings);
-          setIsLoggedIn(success);
-          if (!success) {
-            setError('Login failed. Please check your credentials in the settings.');
-          }
-        } catch (e) {
-          setError('An error occurred during login.');
-          setIsLoggedIn(false);
+      setIsLoading(true);
+      setError(null);
+      try {
+        const success = await apiService.login(settings);
+        setIsLoggedIn(success);
+        if (!success) {
+          setError('Login failed. Please check your credentials in the settings.');
         }
+      } catch (_e: unknown) {
+        setError('An error occurred during login.');
+        setIsLoggedIn(false);
+      } finally {
         setIsLoading(false);
       }
     };
 
-    if (settings) {
-      login();
-    } else {
-      setIsLoading(false);
-    }
+    login();
   }, [settings]);
 
   return (

@@ -34,6 +34,7 @@ const SettingsPage: React.FC = () => {
       }
       setMarkOnScroll(settings.markOnScroll ?? true);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings]);
 
   const handleSubmit = async (event: React.FormEvent) => {

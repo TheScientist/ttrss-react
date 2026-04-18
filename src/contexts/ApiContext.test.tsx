@@ -5,9 +5,10 @@ import { SettingsProvider } from './SettingsContext';
 
 describe('ApiContext', () => {
   it('provides context value to children', () => {
-    let contextValue = null;
+    const captured: unknown[] = [];
     function Consumer() {
-      contextValue = React.useContext(ApiContext);
+      const ctx = React.useContext(ApiContext);
+      if (ctx) captured.push(ctx);
       return <div>Consumer</div>;
     }
     render(
@@ -17,8 +18,8 @@ describe('ApiContext', () => {
         </ApiProvider>
       </SettingsProvider>
     );
-    expect(contextValue).not.toBeNull();
-    expect(typeof contextValue).toBe('object');
+    expect(captured.length).toBeGreaterThan(0);
+    expect(typeof captured[0]).toBe('object');
   });
 
   it('renders children', () => {
