@@ -1,5 +1,11 @@
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
+import path from 'path'
+
+// Determine which build variant to use
+const buildMode = process.env.BUILD_MODE || 'dark' // 'dark' or 'light'
+const inputFile = buildMode === 'light' ? 'index-light.html' : 'index-dark.html'
+const outputDir = buildMode === 'light' ? 'dist-light' : 'dist-dark'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -19,7 +25,11 @@ export default defineConfig({
 
   plugins: [react()],
   build: {
+    outDir: outputDir,
     rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, inputFile),
+      },
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
