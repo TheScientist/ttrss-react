@@ -1,20 +1,21 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8">
     <link rel="icon" href="./favicon.ico">
-    <!-- Manifest for dark mode -->
-    <link rel="manifest" href="/manifest-dark.json">
-    <meta name="theme-color" content="#121212">
+    <!-- Manifest for light mode -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#ffffff">
     <style>
-      html, body, #root { height: 100%; margin: 0; background: #121212; }
+      html, body, #root { height: 100%; margin: 0; background: #ffffff; }
     </style>
     <script>
-      // Set dark theme immediately
+      // Set light theme immediately
       (function() {
-        document.documentElement.style.background = '#121212';
-        document.body.style.background = '#121212';
-        document.documentElement.style.colorScheme = 'dark';
+        window.__THEME_MODE__ = 'light';
+        document.documentElement.style.background = '#ffffff';
+        document.body.style.background = '#ffffff';
+        document.documentElement.style.colorScheme = 'light';
       })();
     </script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">

@@ -12,7 +12,6 @@ import { useHeadlinesContext } from '../../contexts/HeadlinesContext';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { SPECIAL_CATEGORY_ID, SPECIAL_FEED_UNREAD } from '../../constants/specialFeeds';
-// removed useSettings; theme is handled globally
 
 // Responsive drawer widths: keep compact on small screens, wider on larger
 const drawerWidths = { sm: 240, md: 280, lg: 320 } as const;

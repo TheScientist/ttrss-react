@@ -65,10 +65,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const theme = useMemo(() => {
-    // Detect theme from document's color-scheme
-    // This matches what's baked into the HTML at build time
-    const isDark = document.documentElement.style.colorScheme === 'dark' ||
-                   getComputedStyle(document.documentElement).colorScheme === 'dark';
+    // Detect theme from window variable set in HTML inline script
+    // This is baked into the HTML at build time
+    const themeMode = (window as any).__THEME_MODE__ || 'dark';
+    const isDark = themeMode === 'dark';
     
     return createTheme({
       palette: {
@@ -76,6 +76,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
           main: '#FF9800',
         },
         mode: isDark ? 'dark' : 'light',
+        background: {
+          default: isDark ? '#121212' : '#ffffff',
+          paper: isDark ? '#1e1e1e' : '#ffffff',
+        },
       },
     });
   }, []);
