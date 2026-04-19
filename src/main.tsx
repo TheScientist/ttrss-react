@@ -13,25 +13,42 @@ import { i18nReady } from './i18n';
 
 const root = ReactDOM.createRoot(document.getElementById('root')!);
 
+// Load runtime config for basename
+const loadBasePath = async (): Promise<string> => {
+  try {
+    const response = await fetch('/config.json');
+    if (!response.ok) throw new Error('Failed to load config');
+    const config = await response.json();
+    return config.basePath || '/';
+  } catch (error) {
+    console.warn('Could not load config.json, using default basePath "/"');
+    return '/';
+  }
+};
+
 // Optionally render a minimal placeholder while i18n loads
 root.render(<div style={{ display: 'none' }} />);
 
-i18nReady.finally(() => {
-  root.render(
-    <React.StrictMode>
-      <BrowserRouter>
-        <SettingsProvider>
-          <ApiProvider>
-            <FeedProvider>
-              <SelectionProvider>
-                <HeadlinesProvider>
-                  <App />
-                </HeadlinesProvider>
-              </SelectionProvider>
-            </FeedProvider>
-          </ApiProvider>
-        </SettingsProvider>
-      </BrowserRouter>
-    </React.StrictMode>
-  );
-});
+(async () => {
+  const basename = await loadBasePath();
+  
+  i18nReady.finally(() => {
+    root.render(
+      <React.StrictMode>
+        <BrowserRouter basename={basename}>
+          <SettingsProvider>
+            <ApiProvider>
+              <FeedProvider>
+                <SelectionProvider>
+                  <HeadlinesProvider>
+                    <App />
+                  </HeadlinesProvider>
+                </SelectionProvider>
+              </FeedProvider>
+            </ApiProvider>
+          </SettingsProvider>
+        </BrowserRouter>
+      </React.StrictMode>
+    );
+  });
+})();
