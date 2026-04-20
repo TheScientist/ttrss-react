@@ -10,7 +10,7 @@ class MockIntersectionObserver {
   disconnect = vi.fn();
   takeRecords = () => [] as any[];
 }
-global.IntersectionObserver = MockIntersectionObserver as any;
+globalThis.IntersectionObserver = MockIntersectionObserver as any;
 
 // Mock ResizeObserver if used by MUI / TreeView
 class MockResizeObserver {
@@ -18,12 +18,12 @@ class MockResizeObserver {
   unobserve = vi.fn();
   disconnect = vi.fn();
 }
-global.ResizeObserver = MockResizeObserver as any;
+globalThis.ResizeObserver = MockResizeObserver as any;
 
 // Ensure RAF is synchronous to avoid lingering callbacks
 const rafIds = new Set<number>();
 let rafSeq = 1;
-global.requestAnimationFrame = (cb: FrameRequestCallback) => {
+globalThis.requestAnimationFrame = (cb: FrameRequestCallback) => {
   const id = rafSeq++;
   rafIds.add(id);
   // execute immediately
@@ -31,7 +31,7 @@ global.requestAnimationFrame = (cb: FrameRequestCallback) => {
   rafIds.delete(id);
   return id as any;
 };
-global.cancelAnimationFrame = (id: number) => {
+globalThis.cancelAnimationFrame = (id: number) => {
   rafIds.delete(id);
 };
 

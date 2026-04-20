@@ -56,7 +56,6 @@ export default defineConfig({
       },
     },
   },
-
   plugins: [serveThemePlugin, react()],
   build: {
     outDir: outputDir,
