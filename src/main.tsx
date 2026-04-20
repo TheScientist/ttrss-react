@@ -16,7 +16,7 @@ const root = ReactDOM.createRoot(document.getElementById('root')!);
 // Load runtime config for basename
 const loadBasePath = async (): Promise<string> => {
   try {
-    const response = await fetch('/config.json');
+    const response = await fetch('./config.json');
     if (!response.ok) throw new Error('Failed to load config');
     const config = await response.json();
     return config.basePath || '/';
