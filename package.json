@@ -12,7 +12,8 @@
     "build:light": "cross-env BUILD_MODE=light vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest --run --coverage"
+    "test": "vitest --run --coverage",
+    "generate:icons": "node scripts/generate-icons.js"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -46,6 +47,7 @@
     "globals": "^17.0.0",
     "jsdom": "^29.0.0",
     "msw": "^2.10.4",
+    "sharp": "^0.33.5",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.57.1",
     "vite": "^7.3.1",

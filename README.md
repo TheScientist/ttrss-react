@@ -131,6 +131,10 @@ In the project directory, you can run:
 ### Other
 - `npm run lint`: Lints the codebase using ESLint.
 - `npm run preview`: Serves the dark theme production build locally.
+- `npm run generate:icons <source-image> [output-dir]`: Generates PWA icons and favicons from a single source image.
+  - Example: `npm run generate:icons icon.png public`
+  - Requires: A PNG image (512x512px recommended) with transparent background
+  - Generates: App icons, maskable icons for Android, Apple touch icon, and favicon files
 
 ## Technologies Used
 

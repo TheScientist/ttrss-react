@@ -2,15 +2,28 @@
 <html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8">
+    <!-- Favicon -->
     <link rel="icon" href="./favicon.ico">
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+    
     <!-- Manifest for dark mode -->
     <link rel="manifest" href="/manifest-dark.json">
     <meta name="theme-color" content="#121212">
+    
+    <!-- iOS PWA -->
+    <link rel="apple-touch-icon" href="/apple-icon-180.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <!-- Android splash screen: Uses icon + background_color from manifest -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <style>
       html, body, #root { height: 100%; margin: 0; background: #121212; }
     </style>
     <script>
-      // Set dark theme immediately
+      // Set dark theme immediately to avoid flash
       (function() {
         window.__THEME_MODE__ = 'dark';
         document.documentElement.style.background = '#121212';
@@ -19,12 +32,9 @@
       })();
     </script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <!-- iOS PWA -->
-    <link rel="apple-touch-icon" href="/apple-icon-180.png">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <title>Tiny Tiny RSS React</title>
-   </head>
+  </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
