@@ -5,13 +5,13 @@ import {
   type ReactNode,
   useEffect,
   useMemo,
-  useCallback,
+  useCallback
 } from 'react';
 import i18n from '../i18n';
 import type { Settings } from '../types/settings';
 import { getSettings, saveSettings } from '../store/settings';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { GlobalStyles, CssBaseline } from '@mui/material';
+import { GlobalStyles, CssBaseline, CircularProgress } from '@mui/material';
 import apiService from '../api/apiService';
 
 interface SettingsContextType {
@@ -28,7 +28,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [settings, setSettingsState] = useState<Settings | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isApiReady, setIsApiReady] = useState(false);
-
+  
   const login = useCallback(async (loginSettings: Settings): Promise<boolean> => {
     const success = await apiService.login(loginSettings);
     if (success) {
@@ -42,15 +42,12 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    const initSettings = async () => {
-      const storedSettings = await getSettings();
-      if (storedSettings) {
-        setSettingsState(storedSettings);
-        await login(storedSettings);
-      }
-      setIsInitialized(true);
-    };
-    initSettings();
+    const storedSettings = getSettings();
+    if (storedSettings) {
+      setSettingsState(storedSettings);
+      login(storedSettings); // Attempt to log in with stored settings
+    }
+    setIsInitialized(true);
   }, [login]);
 
   useEffect(() => {
@@ -83,6 +80,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       },
     });
   }, []);
+
+  if (!isInitialized) {
+    return <CircularProgress aria-label="Loading…" />
+  }
 
   const value = { settings, setSettings: handleSetSettings, isInitialized, isApiReady, login };
 
