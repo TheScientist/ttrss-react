@@ -47,5 +47,6 @@ jobs:
           files: |
             release-dark.tar.gz
             release-light.tar.gz
+            release-cmobined.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
