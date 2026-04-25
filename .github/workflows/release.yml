@@ -36,6 +36,9 @@ jobs:
         run: |-
           tar -czf release-dark.tar.gz -C dist-dark .
           tar -czf release-light.tar.gz -C dist-light .
+          mv dist-light/ dist-dark/
+          mv dist-dark/dist-light/ dist-dark/light/
+          tar -czf release-cmobined.tar.gz -C dist-dark .
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
