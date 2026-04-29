@@ -47,7 +47,7 @@
     "globals": "^17.0.0",
     "jsdom": "^29.0.0",
     "msw": "^2.10.4",
-    "sharp": "^0.33.5",
+    "sharp": "^0.34.0",
     "typescript": "^6.0.0",
     "typescript-eslint": "^8.57.1",
     "vite": "^8.0.9",
