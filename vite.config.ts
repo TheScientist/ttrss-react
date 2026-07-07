@@ -48,6 +48,7 @@ export default defineConfig({
       '/api/': {
         target: 'https://thescientist.eu/tt-rss/api/',
         changeOrigin: true,
+        secure: false,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
       '/public.php': {

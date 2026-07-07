@@ -55,6 +55,7 @@ const HeadlineList: React.FC = () => {
   const observerCleanupRef = useRef<(() => void) | null>(null);
   const markOnScrollRef = useRef<boolean>(true);
   const previousArticleIdRef = useRef<number | null>(null);
+  const pendingScrollArticleRef = useRef<number | null>(null);
   const selectionRef = useRef(selection);
 
   // Keep markOnScroll ref in sync with settings
@@ -73,34 +74,51 @@ const HeadlineList: React.FC = () => {
   useEffect(() => { isLoadingMoreRef.current = isLoadingMore; }, [isLoadingMore]);
   useEffect(() => { selectionRef.current = selection; }, [selection]);
   
-  // Scroll selected article to top when selection changes
+  // Scroll selected article to top when selection or headline content changes
   useEffect(() => {
     if (!listContainerRef.current) return;
-    
+
     // Determine which article to scroll to
     let articleId: number | null = null;
-    
+
     if (selectedArticleId) {
-      // Article is being opened - scroll to it
+      // Article is being opened - scroll to it (but wait for content)
       articleId = selectedArticleId;
     } else if (previousArticleIdRef.current) {
       // Article is being closed - scroll to the article that was just closed
       articleId = previousArticleIdRef.current;
     }
-    
+
     // Update the previous article ref for next time
     previousArticleIdRef.current = selectedArticleId;
-    
+
     if (!articleId) return; // No article to scroll to
-    
+
     const el = articleRefs.current.get(articleId);
     if (!el) return;
-    
+
+    // If opening an article, wait until its content is available before scrolling
+    if (selectedArticleId) {
+      const article = headlines.find(h => h.id === articleId);
+      // If content already present, or no fetch was requested, scroll now
+      if (article && article.content && article.content.length > 0) {
+        // clear any pending mark
+        pendingScrollArticleRef.current = null;
+      } else {
+        // otherwise, set pending scroll and wait for headlines update that includes content
+        pendingScrollArticleRef.current = articleId;
+        return;
+      }
+    } else {
+      // Closing - clear any pending scroll
+      pendingScrollArticleRef.current = null;
+    }
+
     // Use requestAnimationFrame to ensure DOM has updated (especially for Collapse animations)
     requestAnimationFrame(() => {
       const container = listContainerRef.current;
       if (!container || !el) return;
-      
+
       // Scroll to make the article header visible at the top
       // offsetTop is relative to the container
       container.scrollTo({
@@ -108,7 +126,7 @@ const HeadlineList: React.FC = () => {
         behavior: 'smooth'
       });
     });
-  }, [selectedArticleId]);
+  }, [selectedArticleId, headlines]);
   
   const hasMoreRef = useRef(hasMore);
   useEffect(() => { hasMoreRef.current = hasMore; }, [hasMore]);
@@ -316,9 +334,11 @@ const HeadlineList: React.FC = () => {
     if (selectedArticleId === articleId) {
       // Closing the article - just update state, let effect handle scroll
       setSelectedArticleId(null);
+      pendingScrollArticleRef.current = null;
     } else {
       // Opening a new article
       setSelectedArticleId(articleId);
+      pendingScrollArticleRef.current = articleId;
       fetchArticleContent(articleId); // Fetch full content for the article
       const article = headlines.find(h => h.id === articleId);
       if (article?.unread) {

@@ -10,7 +10,7 @@ vi.mock('../contexts/HeadlinesContext', () => ({
   useHeadlinesContext: () => ({
     headlines: [
       { id: 1, feed_id: 100, title: 'First headline', author: '', unread: true, marked: false, updated: 1700000000 },
-      { id: 2, feed_id: 100, title: 'Second headline', author: '', unread: true, marked: false, updated: 1700001000 },
+      { id: 2, feed_id: 100, title: 'Second headline', author: '', unread: true, marked: false, updated: 1700001000, content: 'loaded content' },
     ],
     isLoading: false,
     isLoadingMore: false,
