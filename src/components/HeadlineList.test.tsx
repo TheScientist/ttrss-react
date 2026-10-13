@@ -2,16 +2,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 
-// Track selectedArticleId for dynamic mocking
+// Track selectedArticleId and headlines for dynamic mocking
 let mockSelectedArticleId = 1;
+let mockHeadlines = [
+  { id: 1, feed_id: 100, title: 'First headline', author: '', unread: true, marked: false, updated: 1700000000, content: 'loaded content' },
+  { id: 2, feed_id: 100, title: 'Second headline', author: '', unread: true, marked: false, updated: 1700001000, content: 'loaded content' },
+];
 
 // Mock contexts/hooks used by HeadlineList
 vi.mock('../contexts/HeadlinesContext', () => ({
   useHeadlinesContext: () => ({
-    headlines: [
-      { id: 1, feed_id: 100, title: 'First headline', author: '', unread: true, marked: false, updated: 1700000000 },
-      { id: 2, feed_id: 100, title: 'Second headline', author: '', unread: true, marked: false, updated: 1700001000, content: 'loaded content' },
-    ],
+    headlines: mockHeadlines,
     isLoading: false,
     isLoadingMore: false,
     hasMore: false,
@@ -61,6 +62,10 @@ describe('HeadlineList', () => {
   beforeEach(() => {
     // Reset mock state
     mockSelectedArticleId = 1;
+    mockHeadlines = [
+      { id: 1, feed_id: 100, title: 'First headline', author: '', unread: true, marked: false, updated: 1700000000, content: 'loaded content' },
+      { id: 2, feed_id: 100, title: 'Second headline', author: '', unread: true, marked: false, updated: 1700001000, content: 'loaded content' },
+    ];
     
     // Mock scrollTo on HTMLUListElement since test DOM doesn't have it
     if (!HTMLUListElement.prototype.scrollTo) {
@@ -107,5 +112,24 @@ describe('HeadlineList', () => {
 
     // Verify scrollTo was called with the correct offset
     expect(scrollToSpy).toHaveBeenCalledWith({ top: 200, behavior: 'smooth' });
+  });
+
+  it('does not scroll back to the top while an article stays open and headlines update', () => {
+    const { rerender } = render(<HeadlineList />);
+
+    mockSelectedArticleId = 2;
+    rerender(<HeadlineList />);
+
+    const list = screen.getByRole('list') as HTMLUListElement;
+    const scrollToSpy = vi.spyOn(list, 'scrollTo');
+
+    const li = screen.getByText('Second headline').closest('li') as HTMLElement;
+    Object.defineProperty(li, 'offsetTop', { value: 200, configurable: true });
+
+    scrollToSpy.mockClear();
+    mockHeadlines = mockHeadlines.map(article => article.id === 2 ? { ...article, unread: false } : article);
+    rerender(<HeadlineList />);
+
+    expect(scrollToSpy).not.toHaveBeenCalled();
   });
 });

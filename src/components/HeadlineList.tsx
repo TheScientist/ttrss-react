@@ -56,6 +56,7 @@ const HeadlineList: React.FC = () => {
   const markOnScrollRef = useRef<boolean>(true);
   const previousArticleIdRef = useRef<number | null>(null);
   const pendingScrollArticleRef = useRef<number | null>(null);
+  const lastHandledSelectedArticleIdRef = useRef<number | null>(null);
   const selectionRef = useRef(selection);
 
   // Keep markOnScroll ref in sync with settings
@@ -74,57 +75,51 @@ const HeadlineList: React.FC = () => {
   useEffect(() => { isLoadingMoreRef.current = isLoadingMore; }, [isLoadingMore]);
   useEffect(() => { selectionRef.current = selection; }, [selection]);
   
-  // Scroll selected article to top when selection or headline content changes
+  // Scroll selected article to top only when a new article is opened, and wait until its content is loaded.
   useEffect(() => {
     if (!listContainerRef.current) return;
 
-    // Determine which article to scroll to
-    let articleId: number | null = null;
+    if (!selectedArticleId) {
+      const closedArticleId = previousArticleIdRef.current;
+      previousArticleIdRef.current = null;
+      lastHandledSelectedArticleIdRef.current = null;
+      pendingScrollArticleRef.current = null;
 
-    if (selectedArticleId) {
-      // Article is being opened - scroll to it (but wait for content)
-      articleId = selectedArticleId;
-    } else if (previousArticleIdRef.current) {
-      // Article is being closed - scroll to the article that was just closed
-      articleId = previousArticleIdRef.current;
+      if (closedArticleId) {
+        const el = articleRefs.current.get(closedArticleId);
+        if (!el) return;
+
+        requestAnimationFrame(() => {
+          const container = listContainerRef.current;
+          if (!container || !el) return;
+          container.scrollTo({ top: el.offsetTop, behavior: 'smooth' });
+        });
+      }
+      return;
     }
 
-    // Update the previous article ref for next time
-    previousArticleIdRef.current = selectedArticleId;
+    if (selectedArticleId === lastHandledSelectedArticleIdRef.current) {
+      pendingScrollArticleRef.current = null;
+      return;
+    }
 
-    if (!articleId) return; // No article to scroll to
+    const article = headlines.find(h => h.id === selectedArticleId);
+    if (!article || !article.content || article.content.length === 0) {
+      pendingScrollArticleRef.current = selectedArticleId;
+      return;
+    }
 
-    const el = articleRefs.current.get(articleId);
+    const el = articleRefs.current.get(selectedArticleId);
     if (!el) return;
 
-    // If opening an article, wait until its content is available before scrolling
-    if (selectedArticleId) {
-      const article = headlines.find(h => h.id === articleId);
-      // If content already present, or no fetch was requested, scroll now
-      if (article && article.content && article.content.length > 0) {
-        // clear any pending mark
-        pendingScrollArticleRef.current = null;
-      } else {
-        // otherwise, set pending scroll and wait for headlines update that includes content
-        pendingScrollArticleRef.current = articleId;
-        return;
-      }
-    } else {
-      // Closing - clear any pending scroll
-      pendingScrollArticleRef.current = null;
-    }
+    pendingScrollArticleRef.current = null;
+    lastHandledSelectedArticleIdRef.current = selectedArticleId;
+    previousArticleIdRef.current = selectedArticleId;
 
-    // Use requestAnimationFrame to ensure DOM has updated (especially for Collapse animations)
     requestAnimationFrame(() => {
       const container = listContainerRef.current;
       if (!container || !el) return;
-
-      // Scroll to make the article header visible at the top
-      // offsetTop is relative to the container
-      container.scrollTo({
-        top: el.offsetTop,
-        behavior: 'smooth'
-      });
+      container.scrollTo({ top: el.offsetTop, behavior: 'smooth' });
     });
   }, [selectedArticleId, headlines]);
   
