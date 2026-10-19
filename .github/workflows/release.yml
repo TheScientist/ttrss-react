@@ -38,7 +38,7 @@ jobs:
           tar -czf release-light.tar.gz -C dist-light .
           mv dist-light/ dist-dark/
           mv dist-dark/dist-light/ dist-dark/light/
-          tar -czf release-cmobined.tar.gz -C dist-dark .
+          tar -czf release-combined.tar.gz -C dist-dark .
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
@@ -47,6 +47,6 @@ jobs:
           files: |
             release-dark.tar.gz
             release-light.tar.gz
-            release-cmobined.tar.gz
+            release-combined.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
