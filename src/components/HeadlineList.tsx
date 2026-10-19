@@ -8,7 +8,7 @@ import {
   List, ListItem, ListItemButton, ListItemText, CircularProgress, Typography, Box, 
   Collapse, Avatar, Toolbar, IconButton, Tooltip
 } from '@mui/material';
-import { Mail, MailOutline, Star, StarOutline, Share, Public, OpenInNew } from '@mui/icons-material';
+import { Mail, MailOutlined, Star, StarOutlined, Share, Public, OpenInNew } from '@mui/icons-material';
 import ArticleRenderer from './ArticleRenderer';
 import ConfirmationDialog from './ConfirmationDialog';
 import SwipeableListItem from './SwipeableListItem';
@@ -437,7 +437,7 @@ const HeadlineList: React.FC = () => {
                   </Box>
                   <ListItemText
                     primary={displayTitle}
-                    primaryTypographyProps={{ sx: { fontWeight: headline.unread ? 'bold' : 'normal', fontStyle: headline.marked ? 'italic' : 'normal', mb: 1 } }}
+                    slotProps={{ primary: { sx: { fontWeight: headline.unread ? 'bold' : 'normal', fontStyle: headline.marked ? 'italic' : 'normal', mb: 1 } } }}
                   />
                   <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                     {feedInfo?.iconUrl && (
@@ -471,12 +471,12 @@ const HeadlineList: React.FC = () => {
                           markArticleAsRead(currentArticle.id, currentArticle.feed_id, currentArticle.unread);
                         }
                       }}>
-                        {headline.unread ? <Mail /> : <MailOutline />}
+                        {headline.unread ? <Mail /> : <MailOutlined />}
                       </IconButton>
                     </Tooltip>
                     <Tooltip title={t('toggle_star')}>
                       <IconButton onClick={(e) => { e.stopPropagation(); markArticleAsStarred(headline.id, !headline.marked); }}>
-                        {headline.marked ? <Star /> : <StarOutline />}
+                        {headline.marked ? <Star /> : <StarOutlined />}
                       </IconButton>
                     </Tooltip>
                     <Tooltip title={t('share_article')}>
@@ -521,7 +521,7 @@ const HeadlineList: React.FC = () => {
                 >
                   <ListItemText
                     primary={displayTitle}
-                    primaryTypographyProps={{ sx: { fontWeight: headline.unread ? 'bold' : 'normal', fontStyle: headline.marked ? 'italic' : 'normal', mb: 1 } }}
+                    slotProps={{ primary: { sx: { fontWeight: headline.unread ? 'bold' : 'normal', fontStyle: headline.marked ? 'italic' : 'normal', mb: 1 } } }}
                   />
                   <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                     {feedInfo?.iconUrl && (

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
-import { useTreeViewApiRef } from '@mui/x-tree-view';
 import { TreeItem } from '@mui/x-tree-view/TreeItem';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
@@ -12,7 +11,6 @@ const FeedTree: React.FC = () => {
   const { treeData, isLoading, error } = useFeedContext();
   const { selection, setSelection } = useSelection();
   const [expanded, setExpanded] = useState<string[]>([]);
-    const apiRef = useTreeViewApiRef();
 
   useEffect(() => {
     if (treeData.length > 0) {
@@ -92,7 +90,6 @@ const FeedTree: React.FC = () => {
       }
     }}>
       <SimpleTreeView
-        apiRef={apiRef}
         aria-label="feed-navigator"
         selectedItems={selection ? `${selection.isCategory ? 'cat' : 'feed'}_${selection.id}` : null}
         expandedItems={expanded}

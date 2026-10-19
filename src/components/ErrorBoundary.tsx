@@ -41,7 +41,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
           <Typography variant="h5" color="error" gutterBottom>
             Something went wrong
           </Typography>
-          <Typography variant="body1" paragraph>
+          <Typography variant="body1" component="p" sx={{ mb: 2 }}>
             {this.state.error?.toString()}
           </Typography>
           <Typography variant="body2" color="textSecondary" component="pre" sx={{ 
