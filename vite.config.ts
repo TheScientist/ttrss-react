@@ -14,8 +14,8 @@ const serveThemePlugin = {
   apply: 'serve' as const,
   config() {
     // Copy the correct HTML file to index.html before dev server starts
-    const srcPath = path.resolve(__dirname, inputFile);
-    const destPath = path.resolve(__dirname, 'index.html');
+    const srcPath = path.resolve(import.meta.dirname, inputFile);
+    const destPath = path.resolve(import.meta.dirname, 'index.html');
     try {
       const content = fs.readFileSync(srcPath, 'utf-8');
       fs.writeFileSync(destPath, content, 'utf-8');
@@ -28,7 +28,7 @@ const serveThemePlugin = {
     order: 'pre' as const,
     handler: (html: string) => {
       // Also transform to serve fresh content
-      const srcPath = path.resolve(__dirname, inputFile);
+      const srcPath = path.resolve(import.meta.dirname, inputFile);
       try {
         return fs.readFileSync(srcPath, 'utf-8');
       } catch (err) {
@@ -62,7 +62,7 @@ export default defineConfig({
     outDir: outputDir,
     rollupOptions: {
       input: {
-        main: path.resolve(__dirname, inputFile),
+        main: path.resolve(import.meta.dirname, inputFile),
       },
       output: {
         manualChunks(id) {
