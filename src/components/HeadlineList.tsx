@@ -8,7 +8,7 @@ import {
   List, ListItem, ListItemButton, ListItemText, CircularProgress, Typography, Box, 
   Collapse, Avatar, Toolbar, IconButton, Tooltip
 } from '@mui/material';
-import { Mail, MailOutlined, Star, StarOutlined, Share, Public, OpenInNew } from '@mui/icons-material';
+import { Mail, MailOutlined, Star, StarBorder, Share, Public, OpenInNew } from '@mui/icons-material';
 import ArticleRenderer from './ArticleRenderer';
 import ConfirmationDialog from './ConfirmationDialog';
 import SwipeableListItem from './SwipeableListItem';
@@ -471,7 +471,7 @@ const HeadlineList: React.FC = () => {
                     </Tooltip>
                     <Tooltip title={t('toggle_star')}>
                       <IconButton onClick={(e) => { e.stopPropagation(); markArticleAsStarred(headline.id, !headline.marked); }}>
-                        {headline.marked ? <Star /> : <StarOutlined />}
+                        {headline.marked ? <Star /> : <StarBorder />}
                       </IconButton>
                     </Tooltip>
                     <Tooltip title={t('share_article')}>

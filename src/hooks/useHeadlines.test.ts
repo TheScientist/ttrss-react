@@ -3,8 +3,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, act, fireEvent } from '@testing-library/react';
 
 // Mocks for contexts used by the hook
+const { mockSelection } = vi.hoisted(() => ({
+  mockSelection: { selection: { id: 10, isCategory: false } },
+}));
+
 vi.mock('../contexts/SelectionContext.tsx', () => ({
-  useSelection: () => ({ selection: { id: 10, isCategory: false } }),
+  useSelection: () => mockSelection,
 }));
 vi.mock('../contexts/SettingsContext.tsx', () => ({
   useSettings: () => ({ isApiReady: true }),
@@ -57,6 +61,7 @@ const TestComponent = () => {
     React.createElement('div', null, `hasMore:${String(hasMore)}`),
     React.createElement('div', null, `error:${error ?? ''}`),
     React.createElement('div', null, `count:${(headlines || []).length}`),
+    React.createElement('div', null, `ids:${headlines.map(headline => headline.id).join(',')}`),
     React.createElement('button', { onClick: () => loadMore() }, 'more'),
     React.createElement(
       'button',
@@ -150,5 +155,38 @@ describe.skip('useHeadlines', () => {
     });
 
     expect(apiService.getArticle).toHaveBeenCalledWith(31);
+  });
+});
+
+describe('useHeadlines pagination deduplication', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (apiService.getHeadlines as any).mockResolvedValue([]);
+  });
+
+  it('keeps one headline per id when loaded pages overlap', async () => {
+    const firstPage = Array.from({ length: 20 }, (_, index) => ({
+      id: index + 1,
+      feed_id: 2,
+      title: `t${index + 1}`,
+      unread: true,
+    }));
+    (apiService.getHeadlines as any)
+      .mockResolvedValueOnce(firstPage)
+      .mockResolvedValueOnce([
+        { id: 20, feed_id: 2, title: 'duplicate from first page', unread: true },
+        { id: 21, feed_id: 2, title: 'new headline', unread: true },
+        { id: 21, feed_id: 2, title: 'duplicate from fetched page', unread: true },
+      ]);
+
+    render(React.createElement(TestComponent));
+    await screen.findByText('count:20');
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('more'));
+    });
+
+    expect(screen.getByText('count:21')).toBeInTheDocument();
+    expect(screen.getByText(`ids:${Array.from({ length: 21 }, (_, index) => index + 1).join(',')}`)).toBeInTheDocument();
   });
 });

@@ -6,6 +6,15 @@ import { SPECIAL_FEED_PUBLISHED, SPECIAL_FEED_STARRED, SPECIAL_FEED_UNREAD } fro
 import type { ApiArticle } from '../api/types';
 import { useSettings } from '../contexts/SettingsContext.tsx';
 
+const deduplicateHeadlines = (articles: ApiArticle[]): ApiArticle[] => {
+  const seenIds = new Set<number>();
+  return articles.filter(article => {
+    if (seenIds.has(article.id)) return false;
+    seenIds.add(article.id);
+    return true;
+  });
+};
+
 export const useHeadlines = () => {
   const { incrementUnreadCount, decrementUnreadCount, refetchCounters, adjustSpecialCounter } = useFeedContext();
   const { selection } = useSelection();
@@ -182,7 +191,7 @@ export const useHeadlines = () => {
         selection.isCategory,
         { limit: pageSize, skip: 0 }
       );
-      setHeadlines(fetchedHeadlines);
+      setHeadlines(deduplicateHeadlines(fetchedHeadlines));
       setHasMore(fetchedHeadlines.length === pageSize);
     } catch (e) {
       setError('Failed to fetch headlines.');
@@ -210,8 +219,7 @@ export const useHeadlines = () => {
         { limit: pageSize, skip: currentOffset }
       );
       setHeadlines(curr => {
-        const updated = [...curr, ...more];
-        return updated;
+        return deduplicateHeadlines([...curr, ...more]);
       });
       setHasMore(more.length === pageSize);
     } catch (e) {
